@@ -1,10 +1,5 @@
 #include "stack_tokens.h"
 
-//memset
-
-// 0 0 0 0 0 0 0 0
-
-// fileerr - глобал, везде убрать
 size_t MaxNumOfStackTok = 4;
 size_t NumOfStackTok = 0;
 size_t* TokArrPointData = (size_t* ) calloc(MaxNumOfStackTok, sizeof(size_t));
@@ -206,6 +201,11 @@ int StackTokDtor(StackTok_t* stk, int line) {
     ERRPRINTOK("")
 
     assert(stk);
+
+    for (int i = 0; i < stk->capasity; i++)
+    {
+        free(stk->data[i]);
+    }
 
     stk->size = 0;
     stk->capasity = 0;

@@ -17,6 +17,7 @@ Operator_t arr_operators[OP_CAPASITY] = {
                                          "cosh"  , CountHash("cosh")  ,  "COSH"  , COSH,
                                          "tanh"  , CountHash("tanh")  ,  "TANH"  , TANH,
                                          "="     , CountHash("=")     ,   "="    , EQ  ,
+                                         ";"     , CountHash(";")     ,   "SEP"  , SEP ,
                                          };
 
 // Variable_t arr_variable[VAR_CAPASITY] = { 

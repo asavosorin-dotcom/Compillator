@@ -67,7 +67,11 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
 
         if (*s == ';')
         {
-            
+            node = CompNodeOPCtor(SEP);
+            TOKPUSH(*tokens, node);
+
+            s++;
+            continue;
         }
 
         if (isdigit(*s)) // пока только int
@@ -142,7 +146,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
 CompNode_t* GetGeneral(StackTok_t* tokens)
 {
     int token_pos = 0;
-    CompNode_t* node = GetEquat(tokens, &token_pos);
+    CompNode_t* node = GetOperation(tokens, &token_pos);
 
     if (tokens->data[token_pos] == NULL)
     {
@@ -159,10 +163,38 @@ CompNode_t* GetGeneral(StackTok_t* tokens)
 
 // x + 3 * x 
 
+// CompNode_t* Get
+
+CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
+{
+    TOKEN_NULL
+    
+    CompNode_t* node_left = GetEquat(tokens, token_pos);
+    if (node_left == NULL) return NULL;
+    CompNode_t* sep = Token;
+
+    (*token_pos)++;
+
+    if (!node_is_op(sep, SEP)) 
+    {
+        PRINT_ERR("Syntax error SEP");
+        return NULL;
+    }
+
+    sep->left = node_left;
+
+    CompNode_t* node_right = GetOperation(tokens, token_pos);
+    sep->right = node_right;
+
+    return sep;
+}
+
 CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
 {
+    TOKEN_NULL
+    
     CompNode_t* var = GetVariable(tokens, token_pos);
-
+    
     if ((var == NULL) || !node_is_op(Token, EQ)) 
     {
         (*token_pos)--;
@@ -173,10 +205,10 @@ CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
     (*token_pos)++;
     
     CompNode_t* expr = GetExpression(tokens, token_pos);
-
+    
     eq->left = var;
     eq->right = expr;
-
+    
     return eq;
 }
 

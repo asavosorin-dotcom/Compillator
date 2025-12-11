@@ -6,6 +6,8 @@ static int index_png = 0;
 
 void CompDumpNode(CompNode_t* node, FILE* file_dump, Stack_t variables)
 {       
+    assert(node);
+    
     #define PRINT_NODE_IMAGE(print_type, color, ...) PRINT_IMAGE("\tnode%p[label = \"{parent: %p | %p| TYPE: %s |VAL: " print_type " | {%p | %p}}\", shape = Mrecord, style = \"filled\", fillcolor = " color "]\n", node, node->parent, node, arr_types[node->type] , __VA_ARGS__, node->left, node->right);
 
     // добавить разные формы и цвета для разных типов ячеек 
