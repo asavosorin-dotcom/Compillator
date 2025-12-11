@@ -25,15 +25,15 @@ int ifTokenMath(CompNode_t* token);
 #define Token tokens->data[*token_pos]
 #define TOKEN_NULL if (Token == NULL) return NULL;
 
-size_t GetLex(const char** s, StackTok_t* tokens, Stack_t* variables)
+size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
 {
     size_t count_lex = 0;
     
     CompNode_t* node = NULL;
 
-    while (**s != '\0')
+    while (*s != '\0')
     {
-        if (**s == '(')
+        if (*s == '(')
         {
             node = CompNodeOPCtor(PAP_OPEN);
             aa
@@ -42,31 +42,36 @@ size_t GetLex(const char** s, StackTok_t* tokens, Stack_t* variables)
             TOKPUSH(*tokens, node);
 
              // OP value = PAP_OPEN
-            (*s)++;
+            s++;
             continue;
         }
 
-        if (**s == ')')
+        if (*s == ')')
         {
             node = CompNodeOPCtor(PAP_CLOSE);
             TOKPUSH(*tokens, node);
             aa
 
-            (*s)++;
+            s++;
             continue;
         }
 
-        // if (strncmp(*s, "sin", strlen("sin")))
-        // {   
+        if (*s == '=')
+        {
+            node = CompNodeOPCtor(EQ);
+            TOKPUSH(*tokens, node);
 
-        // }   
-        if (isdigit(**s)) // пока только int
+            s++;
+            continue;
+        }
+
+        if (isdigit(*s)) // пока только int
         {
             int value = 0;
             do {
-                value = 10 * value + (**s - '0');
-                (*s)++;
-            } while (isdigit(**s));
+                value = 10 * value + (*s - '0');
+                s++;
+            } while (isdigit(*s));
 
             node = CompNodeNUMCtor(value);
             printf(BOLD_BLUE "NUM_NODE = [%p]\n" RESET, node);
@@ -81,7 +86,7 @@ size_t GetLex(const char** s, StackTok_t* tokens, Stack_t* variables)
         {
 
             // printf("[%d]s = [%s]\n", op_index, *s);
-            if (strncmp(*s, arr_operators[op_index].name, strlen(arr_operators[op_index].name)) == 0) // не может быть переменной с названием как стандартная функция
+            if (strncmp(s, arr_operators[op_index].name, strlen(arr_operators[op_index].name)) == 0) // не может быть переменной с названием как стандартная функция
             {
 
                 node = CompNodeOPCtor(arr_operators[op_index].code);
@@ -90,24 +95,24 @@ size_t GetLex(const char** s, StackTok_t* tokens, Stack_t* variables)
 
                 command_flag = YES;
                 // printf("я тут есть\n");
-                *s += strlen(arr_operators[op_index].name);
+                s += strlen(arr_operators[op_index].name);
                 break;
             }
         }
 
         if (command_flag) continue;
 
-        if (isalpha(**s))
+        if (isalpha(*s))
         {    
             int var_len = 0;
 
             do {
                 var_len++;
-                (*s)++;
-            } while (isalnum(**s));
+                s++;
+            } while (isalnum(*s));
 
             Variable_t var = {};
-            var.name_var = strndup(*s - var_len, var_len);
+            var.name_var = strndup(s - var_len, var_len);
             var.value = 0;
             
             PUSH(*variables, var);
@@ -120,9 +125,9 @@ size_t GetLex(const char** s, StackTok_t* tokens, Stack_t* variables)
             continue;
         }
 
-        if (isspace(**s)) {(*s)++; continue;}
+        if (isspace(*s)) {s++; continue;}
 
-        PRINT_ERR("Syntax_error: %c\n", **s);
+        PRINT_ERR("Syntax_error: %c\n", *s);
     }
 
     return tokens->size;
@@ -132,17 +137,42 @@ size_t GetLex(const char** s, StackTok_t* tokens, Stack_t* variables)
 CompNode_t* GetGeneral(StackTok_t* tokens)
 {
     int token_pos = 0;
-    CompNode_t* node = GetExpression(tokens, &token_pos);
+    CompNode_t* node = GetEquat(tokens, &token_pos);
 
     if (tokens->data[token_pos] == NULL)
     {
-        printf("nullll");
-        fflush(stdout);
         return node;
     }
     
     PRINT_ERR("Syntax error");
     return NULL;
+}
+
+/// Sum -> Mul +|- Mul
+
+// Equat -> {{VAR '='} Expression} | Expression
+
+// x + 3 * x 
+
+CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
+{
+    CompNode_t* var = GetVariable(tokens, token_pos);
+
+    if ((var == NULL) || !node_is_op(Token, EQ)) 
+    {
+        (*token_pos)--;
+        return GetExpression(tokens, token_pos);
+    }
+
+    CompNode_t* eq = Token;
+    (*token_pos)++;
+    
+    CompNode_t* expr = GetExpression(tokens, token_pos);
+    
+    eq->left = var;
+    eq->right = expr;
+
+    return eq;
 }
 
 CompNode_t* GetExpression(StackTok_t* tokens, int* token_pos)
@@ -156,7 +186,7 @@ CompNode_t* GetExpression(StackTok_t* tokens, int* token_pos)
     $
     if (Token->type != OP) return expr1;
 
-    while (Token->value.oper == ADD || Token->value.oper == SUB)
+    while (node_is_op(Token, ADD) || node_is_op(Token, SUB))
     {
         
         printf("я в плюсе\n");
@@ -291,7 +321,7 @@ int ifTokenMath(CompNode_t* token)
     return NO;
 }
 
-CompNode_t* GetPermissionExp(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetPermissionExp(StackTok_t* tokens, int* token_pos) // переделать название
 {
     TOKEN_NULL
 
@@ -300,18 +330,18 @@ CompNode_t* GetPermissionExp(StackTok_t* tokens, int* token_pos)
         if (Token->value.oper == PAP_OPEN)
         {
             
-            free(Token);
+            // free(Token);
             (*token_pos)++; // пропуск PAP_OPEN
             $
-            CompNode_t* node = GetExpression(tokens, token_pos);
+            CompNode_t* node = GetExpression(tokens, token_pos); // сделать норм проверку
             $
-            if (Token->value.oper != PAP_CLOSE) // возможно появление функции if
+            if (Token->value.oper != PAP_CLOSE) //  
             {
                 PRINT_ERR("Syntax error \")\"");
                 return NULL;
             }
             $
-            free(Token);
+            // free(Token);
             (*token_pos)++;
             
             return node;
@@ -375,6 +405,17 @@ void PrintToken(CompNode_t* node, Stack_t variables)
         case VAR:
             printf("var %s\n", variables.data[node->value.index_var]);
     }
+}
+
+int node_is_op(CompNode_t* node, Operator_val_t val)
+{
+    if (node == NULL) return NO;
+    
+    if (node->type != OP) return NO;
+
+    if (node->value.oper != val) return NO;
+
+    return YES;
 }
 
 // syntax context
