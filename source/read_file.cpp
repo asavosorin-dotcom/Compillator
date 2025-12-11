@@ -65,6 +65,11 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
             continue;
         }
 
+        if (*s == ';')
+        {
+            
+        }
+
         if (isdigit(*s)) // пока только int
         {
             int value = 0;
@@ -150,7 +155,7 @@ CompNode_t* GetGeneral(StackTok_t* tokens)
 
 /// Sum -> Mul +|- Mul
 
-// Equat -> {{VAR '='} Expression} | Expression
+// Equat -> {{VAR '='} Expression} ';' | Expression
 
 // x + 3 * x 
 
@@ -168,7 +173,7 @@ CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
     (*token_pos)++;
     
     CompNode_t* expr = GetExpression(tokens, token_pos);
-    
+
     eq->left = var;
     eq->right = expr;
 
