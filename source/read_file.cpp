@@ -24,7 +24,7 @@ int get_len_name(const char* s);
 #define Token tokens->data[*token_pos]
 #define TOKEN_NULL if (Token == NULL) return NULL;
 
-size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
+size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* functions)
 {
     size_t count_lex = 0;
     
@@ -99,14 +99,18 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
         if (strncmp(s, "func", 4) == 0)
         {
             node = CompNodeCtor(FUNC_INIT);
-            TOKPUSH(*tokens, node);
-
+            
             s += 4;
             s += skip_space(s);
-
+            
             int len_func_name = get_len_name(s); 
             char* func_name  = strndup(s, len_func_name);
-
+            s += len_func_name;
+            
+            PUSH(*functions, func_name);
+            node->value.index_var = functions->size - 1;
+            
+            TOKPUSH(*tokens, node);
             continue;
         }
 
@@ -194,13 +198,13 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
             s += var_len;
 
             int index_var = isvariable(var, variables);
-            free(var);
-
+            
             if (index_var == -1)
             {
                 PRINT_ERR("Uninitialized variable [%s]", var);
                 continue;
             }
+            free(var);
 
             node = CompNodeVARCtor(index_var);
             TOKPUSH(*tokens, node);
@@ -263,8 +267,8 @@ CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
     TOKEN_NULL
     
     CompNode_t* node_left = GetIf(tokens, token_pos);
-    if (node_left == NULL)
-        node_left = GetEquat(tokens, token_pos);
+    if (node_left == NULL) node_left = GetFunction(tokens, token_pos);
+    if (node_left == NULL) node_left = GetEquat(tokens, token_pos);
 
     if (node_left == NULL)
     {
@@ -299,6 +303,26 @@ CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
                              }                                                     \
                              (*token_pos)++;                                       \
 
+
+CompNode_t* GetFunction(StackTok_t* tokens, int* token_pos)
+{
+    if (Token->type != FUNC_INIT) return NULL;
+    CompNode_t* func_init = Token;
+    (*token_pos)++;
+
+    check_for(PAP_OPEN, "(");
+    CompNode_t* param = GetVariable(tokens, token_pos);  
+    check_for(PAP_CLOSE, ")");
+
+    check_for(BEGIN, "{");
+    CompNode_t* main_body = GetOperation(tokens, token_pos);
+    check_for(END, "}");
+
+    func_init->left = param;
+    func_init->right = main_body;
+
+    return func_init;
+}
 
 CompNode_t* GetIf(StackTok_t* tokens, int* token_pos)
 {
@@ -352,6 +376,7 @@ CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
 
 CompNode_t* GetExpression(StackTok_t* tokens, int* token_pos)
 {
+    $
     TOKEN_NULL
     CompNode_t* expr1 = GetMul(tokens, token_pos);
 
@@ -546,18 +571,10 @@ CompNode_t* GetVariable(StackTok_t* tokens, int* token_pos)
     TOKEN_NULL
     $
     CompDump(Token, "var");
-    // if (Token->type == VAR_INIT)
+
+    // if (Token->type = VAR_INIT)
     // {
-    //     CompNode_t* node_init = Token;
-    //     (*token_pos)++;
-
-    //     if (Token->type == VAR)
-    //     {
-    //         node_init->left = Token;
-    //         (*token_pos)++;
-
-    //         return node_init;
-    //     }
+    //     PUSH()
     // }
 
     if (Token->type == VAR || Token->type == VAR_INIT)

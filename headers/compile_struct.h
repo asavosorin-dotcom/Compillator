@@ -6,7 +6,7 @@
 #include "stack_tokens.h"
 
 #define OP_CAPASITY   21
-#define TYPE_CAPASITY 4
+#define TYPE_CAPASITY 6
 
 extern struct Operator_t arr_operators[OP_CAPASITY];
 extern const char* arr_types[TYPE_CAPASITY];
