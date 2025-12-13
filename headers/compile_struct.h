@@ -41,7 +41,7 @@ enum Operator_val_t {
                     };
 
 enum Flag_t  {NO = 0, YES = 1};
-enum Type_t  {NUM  = 0, OP = 1, VAR = 2, VAR_INIT = 3};
+enum Type_t  {NUM  = 0, OP = 1, VAR = 2, VAR_INIT = 3, FUNC = 4, FUNC_INIT = 5};
 
 struct Variable_t
 {

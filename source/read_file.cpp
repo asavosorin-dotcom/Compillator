@@ -1,23 +1,22 @@
 #include "read_file.h"
 
 int ifTokenMath(CompNode_t* token);
-
+int isvariable(char* str, Stack_t* variables);
+int get_len_name(const char* s);
 // положение токена
 // логичсеская часть
-
-// 
-
-// DiffNode_t* GetNumber     (const char** s);
-// DiffNode_t* GetP          (const char** s);
-// DiffNode_t* GetCommand    (const char** s);
-// DiffNode_t* GetDeg        (const char** s);
-// DiffNode_t* GetT          (const char** s);
-// DiffNode_t* GetExpression (const char** s);
-// DiffNode_t* GetG          (const char** s);
-
+// надо подумать о переменных, обработка ошибок при отсутствии инициализации переменной
+// пушить в стек с переменными только при инициализации!!!
+// добавить функции 
+// сделать стек под функции
+// написать запись дерева
+// оформить в виде папки front-end
 // можно добавить в type OP, а еще будут правила для разных операторов
-// разделять математические операторы и синтаксические(таких пока нет) 
 
+// function () {dsaslkvn; a; lkdvn; DGF;}
+
+// хранить название переменной, при инициализации пушить в стек
+// не забыть про хранение названий функций и переменных (ПОКА БЕЗ ЭТОГО!!!!!!!)
 
 #define aa printf("%s:%d [%d]push node = [%p]\n", __FILE__, __LINE__, tokens->size, node);
 #define $ printf("%s:%d [%d]token = [%p]\n", __FILE__, __LINE__, *token_pos, Token); 
@@ -72,12 +71,45 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
             continue;
         }
 
-        if (strncmp(s, "var", 3) == 0)
+        if (strncmp(s, "var", 3) == 0) // переделать
         {
             node = CompNodeCtor(VAR_INIT);
+            s += 3;
+            s += skip_space(s);
+
+            if (!isalpha(*s))
+            {
+                PRINT_ERR("Syntax error\n");
+                return 0;
+            }
+
+            int var_len = get_len_name(s);
+
+            Variable_t var = {};
+            var.name_var = strndup(s, var_len);
+            var.value = 0;
+
+            s += var_len;
+            PUSH(*variables, var);
+ 
+            node->value.index_var = variables->size - 1;
             TOKPUSH(*tokens, node);
 
-            s += 3;
+            continue;
+        }
+
+        if (strncmp(s, "func", 4) == 0)
+        {
+            node = CompNodeCtor(FUNC_INIT);
+            TOKPUSH(*tokens, node);
+
+            s += 4;
+            s += skip_space(s);
+
+            int len_func_name = get_len_name(s); 
+            char* func_name  = strndup(s, len_func_name);
+
+
             continue;
         }
 
@@ -157,24 +189,26 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
 
         if (isalpha(*s))
         {    
-            int var_len = 0;
+            int var_len = get_len_name(s);
 
-            do {
-                var_len++;
-                s++;
-            } while (isalnum(*s));
-
-            Variable_t var = {};
-            var.name_var = strndup(s - var_len, var_len);
-            var.value = 0;
+            // тут будет условие для функции
             
-            PUSH(*variables, var); // тут нахуй не надо вот это
+            char* var = strndup(s, var_len);
+            s += var_len;
 
-            node = CompNodeVARCtor(variables->size - 1);
-            printf(BOLD_BLUE "NODE = [%p]\n" RESET, node);
+            int index_var = isvariable(var, variables);
+            free(var);
+
+            if (index_var == -1)
+            {
+                PRINT_ERR("Uninitialized variable [%s]", var);
+                continue;
+            }
+
+            node = CompNodeVARCtor(index_var);
             TOKPUSH(*tokens, node);
             aa
-
+            
             continue;
         }
 
@@ -186,6 +220,28 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
     return tokens->size;
 }
 
+int isvariable(char* str, Stack_t* variables)
+{
+    for (int index_var = 0; index_var < variables->size; index_var++)
+    {
+        if (strcmp(str, variables->data[index_var].name_var) == 0)
+            return index_var;
+    }
+
+    return -1;
+}
+
+int get_len_name(const char* s)
+{
+    int var_len = 0;
+
+    do {
+        var_len++;
+        s++;
+    } while (isalnum(*s));
+
+    return var_len;
+}
 
 CompNode_t* GetGeneral(StackTok_t* tokens)
 {
@@ -493,26 +549,26 @@ CompNode_t* GetVariable(StackTok_t* tokens, int* token_pos)
     TOKEN_NULL
     $
     CompDump(Token, "var");
-    if (Token->type == VAR_INIT)
-    {
-        CompNode_t* node_init = Token;
-        (*token_pos)++;
-        
-        if (Token->type == VAR)
-        {
-            node_init->left = Token;
-            (*token_pos)++;
+    // if (Token->type == VAR_INIT)
+    // {
+    //     CompNode_t* node_init = Token;
+    //     (*token_pos)++;
 
-            return node_init;
-        }
-    }
+    //     if (Token->type == VAR)
+    //     {
+    //         node_init->left = Token;
+    //         (*token_pos)++;
 
-    else if (Token->type == VAR)
+    //         return node_init;
+    //     }
+    // }
+
+    if (Token->type == VAR || Token->type == VAR_INIT)
     {
         return tokens->data[(*token_pos)++];
     }
 
-    PRINT_ERR("It isn't variable");
+    // PRINT_ERR("It isn't variable");
     return NULL;
 } 
 
@@ -554,6 +610,3 @@ int node_is_op(CompNode_t* node, Operator_val_t val)
 
     return YES;
 }
-
-// syntax context
-// массив, 
