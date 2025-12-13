@@ -36,8 +36,6 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
         if (*s == '(')
         {
             node = CompNodeOPCtor(PAP_OPEN);
-            aa
-            fflush(stdout);
 
             TOKPUSH(*tokens, node);
 
@@ -51,6 +49,54 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
             node = CompNodeOPCtor(PAP_CLOSE);
             TOKPUSH(*tokens, node);
             aa
+
+            s++;
+            continue;
+        }
+
+        if (strncmp(s, "if", 2) == 0)
+        {
+            node = CompNodeOPCtor(IF);
+            TOKPUSH(*tokens, node);
+
+            s += 2;
+            continue;
+        }
+
+        if (strncmp(s, "while", 5) == 0)
+        {
+            node = CompNodeOPCtor(WHILE);
+            TOKPUSH(*tokens, node);
+
+            s += 5;
+            continue;
+        }
+
+        if (strncmp(s, "var", 3) == 0)
+        {
+            node = CompNodeCtor(VAR_INIT);
+            TOKPUSH(*tokens, node);
+
+            s += 3;
+            continue;
+        }
+
+        if (*s == '{')
+        {
+            node = CompNodeOPCtor(BEGIN);
+            TOKPUSH(*tokens, node);
+
+            s++;
+            continue;
+        }
+
+        if (*s == '}')
+        {
+            node = CompNodeOPCtor(END);
+            TOKPUSH(*tokens, node);
+
+            node = CompNodeOPCtor(SEP);
+            TOKPUSH(*tokens, node);
 
             s++;
             continue;
@@ -83,9 +129,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
             } while (isdigit(*s));
 
             node = CompNodeNUMCtor(value);
-            printf(BOLD_BLUE "NUM_NODE = [%p]\n" RESET, node);
             TOKPUSH(*tokens, node);
-            aa
 
             continue;
         }
@@ -124,7 +168,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
             var.name_var = strndup(s - var_len, var_len);
             var.value = 0;
             
-            PUSH(*variables, var);
+            PUSH(*variables, var); // тут нахуй не надо вот это
 
             node = CompNodeVARCtor(variables->size - 1);
             printf(BOLD_BLUE "NODE = [%p]\n" RESET, node);
@@ -157,36 +201,77 @@ CompNode_t* GetGeneral(StackTok_t* tokens)
     return NULL;
 }
 
-/// Sum -> Mul +|- Mul
-
-// Equat -> {{VAR '='} Expression} ';' | Expression
-
-// x + 3 * x 
-
-// CompNode_t* Get
+// Sum -> Mul +|- Mul
+// IF    -> "if" (Expression) '{' {IF|EQ}+ '}'
+// Equat -> {{VAR '='} Expression} ';' | Expression 
 
 CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
 {
     TOKEN_NULL
     
-    CompNode_t* node_left = GetEquat(tokens, token_pos);
-    if (node_left == NULL) return NULL;
+    CompNode_t* node_left = GetIf(tokens, token_pos);
+    if (node_left == NULL)
+        node_left = GetEquat(tokens, token_pos);
+
+    if (node_left == NULL)
+    {
+        (*token_pos)++;
+        return NULL;
+    }
+
+    CompDump(Token, "token sep");
     CompNode_t* sep = Token;
-
+    
     (*token_pos)++;
-
+    
     if (!node_is_op(sep, SEP)) 
     {
         PRINT_ERR("Syntax error SEP");
         return NULL;
     }
-
+    
     sep->left = node_left;
-
+    
     CompNode_t* node_right = GetOperation(tokens, token_pos);
     sep->right = node_right;
-
+    
+    CompDump(sep, "sep");
     return sep;
+}
+
+#define check_for(enum, lex) if (!node_is_op(Token, enum))                         \
+                             {                                                     \
+                                 PRINT_ERR("Syntax error in \"" lex "\"\n");       \
+                                 return NULL;                                      \
+                             }                                                     \
+                             (*token_pos)++;                                       \
+
+
+CompNode_t* GetIf(StackTok_t* tokens, int* token_pos)
+{
+    TOKEN_NULL
+    
+    if (!(node_is_op(Token, IF) || node_is_op(Token, WHILE))) return NULL;
+    CompNode_t* if_node = Token;
+    (*token_pos)++;
+
+    check_for(PAP_OPEN, "(");
+    CompNode_t* condition = GetExpression(tokens, token_pos);
+    check_for(PAP_CLOSE, ")");
+
+    CompDump(condition, "condition");
+    $
+
+    check_for(BEGIN, "{");
+    CompNode_t* main_body = GetOperation(tokens, token_pos);
+    CompDump(main_body, "main_body");
+    $
+    check_for(END, "}");
+    
+    if_node->left = condition;
+    if_node->right = main_body;
+
+    return if_node;
 }
 
 CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
@@ -407,14 +492,29 @@ CompNode_t* GetVariable(StackTok_t* tokens, int* token_pos)
 {
     TOKEN_NULL
     $
-    if (tokens->data[*token_pos]->type == VAR)
+    CompDump(Token, "var");
+    if (Token->type == VAR_INIT)
+    {
+        CompNode_t* node_init = Token;
+        (*token_pos)++;
+        
+        if (Token->type == VAR)
+        {
+            node_init->left = Token;
+            (*token_pos)++;
+
+            return node_init;
+        }
+    }
+
+    else if (Token->type == VAR)
     {
         return tokens->data[(*token_pos)++];
     }
 
     PRINT_ERR("It isn't variable");
     return NULL;
-}
+} 
 
 CompNode_t* GetNumber(StackTok_t* tokens, int* token_pos)
 {

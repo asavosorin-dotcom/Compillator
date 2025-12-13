@@ -12,7 +12,8 @@
 size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables);
 
 CompNode_t* GetGeneral       (StackTok_t* tokens);
-CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos);
+CompNode_t* GetOperation     (StackTok_t* tokens, int* token_pos);
+CompNode_t* GetIf            (StackTok_t* tokens, int* token_pos);
 CompNode_t* GetEquat         (StackTok_t* tokens, int* token_pos);
 CompNode_t* GetExpression    (StackTok_t* tokens, int* token_pos);
 CompNode_t* GetMul           (StackTok_t* tokens, int* token_pos);

@@ -11,5 +11,6 @@
 #include "read_file.h"
 #include "stack_tokens.h"
 #include "comp_dump.h"
+#include "work_with_text.h"
 
 #endif
