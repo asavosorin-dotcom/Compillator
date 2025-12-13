@@ -85,12 +85,10 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
 
             int var_len = get_len_name(s);
 
-            Variable_t var = {};
-            var.name_var = strndup(s, var_len);
-            var.value = 0;
+            char* name_var = strndup(s, var_len);
 
             s += var_len;
-            PUSH(*variables, var);
+            PUSH(*variables, name_var);
  
             node->value.index_var = variables->size - 1;
             TOKPUSH(*tokens, node);
@@ -108,7 +106,6 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables)
 
             int len_func_name = get_len_name(s); 
             char* func_name  = strndup(s, len_func_name);
-
 
             continue;
         }
@@ -224,7 +221,7 @@ int isvariable(char* str, Stack_t* variables)
 {
     for (int index_var = 0; index_var < variables->size; index_var++)
     {
-        if (strcmp(str, variables->data[index_var].name_var) == 0)
+        if (strcmp(str, variables->data[index_var]) == 0)
             return index_var;
     }
 

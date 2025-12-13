@@ -209,7 +209,7 @@ int StackDtor(Stack_t* stk, int line) {
 
     for (int i = 0; i < stk->capasity; i++)
     {
-        free(stk->data[i].name_var);
+        free(stk->data[i]);
     }
 
     printf("я в free\n");
@@ -264,7 +264,7 @@ int StackRealloc(Stack_t* stk, int line) {
             for (int i = stk->capasity + 1; i < stk->capasity * 2; i++) {
             // fprintf(fileerr, "i = %d\n", i);
 
-            stk->data[i] = {};
+            stk->data[i] = NULL;
         }
     #endif
 

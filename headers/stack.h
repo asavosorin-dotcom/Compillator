@@ -41,7 +41,7 @@
     #define ONDEBAGHASH(func)
 #endif
 
-typedef struct Variable_t StackElement_t;
+typedef char* StackElement_t;
 #define TYPEELEM "%s"
 
 enum StackErr_t {STACK_OK           = 0, 
