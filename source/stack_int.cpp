@@ -1,15 +1,14 @@
-#include "stack.h"
+#include "stack_int.h"
 
 //memset
 
 // 0 0 0 0 0 0 0 0
 
-// fileerr - глобал, везде убрать
-size_t MaxNumOfStack = 4;
-size_t NumOfStack = 0;
-size_t* ArrPointData = (size_t* ) calloc(MaxNumOfStack, sizeof(size_t));
+size_t  int_MaxNumOfStack = 4;
+size_t  int_NumOfStack = 0;
+size_t* int_ArrPointData = (size_t* ) calloc(int_MaxNumOfStack, sizeof(size_t));
 
-int StackCtor(Stack_t* stk, int capasity, int line, const char* stackname, const char* funcname) {
+int StackIntCtor(StackInt_t* stk, int capasity, int line, const char* stackname, const char* funcname) {
     assert(stk);
     
     #ifdef DEBUG
@@ -41,9 +40,9 @@ int StackCtor(Stack_t* stk, int capasity, int line, const char* stackname, const
 
     // fprintf(fileerr, "capasity = %d\n", stk->capasity);
     #ifdef CANARY
-        stk->data = (StackElement_t* ) calloc((size_t) capasity + 2, sizeof(StackElement_t));
+        stk->data = (StackIntElement_t* ) calloc((size_t) capasity + 2, sizeof(StackIntElement_t));
     #else
-        stk->data = (StackElement_t* ) calloc((size_t) capasity,     sizeof(StackElement_t));
+        stk->data = (StackIntElement_t* ) calloc((size_t) capasity,     sizeof(StackIntElement_t));
     #endif
 
     #ifdef DEBUG
@@ -83,7 +82,7 @@ int StackCtor(Stack_t* stk, int capasity, int line, const char* stackname, const
     return 0;
 }
 // ver
-int StackPush(Stack_t* stk, StackElement_t elem, int line) {
+int StackIntPush(StackInt_t* stk, StackIntElement_t elem, int line) {
     assert(stk);
     int err = 0;
 
@@ -95,7 +94,7 @@ int StackPush(Stack_t* stk, StackElement_t elem, int line) {
 
     if ((int) stk->size == stk->capasity) {
         // fprintf(fileerr, "Check realloc\n");
-        REALLOC(*stk)
+        INTREALLOC(*stk)
     }
 
     // fprintf(fileerr, "Check push after realloc\n");
@@ -111,7 +110,7 @@ int StackPush(Stack_t* stk, StackElement_t elem, int line) {
 
     // fprintf(fileerr, "\nhash after push = %d\n", stk->hash);
 
-    // fprintf(fileerr, "delta hash = " TYPEELEM "\n", (StackElement_t) stk->size * elem);
+    // fprintf(fileerr, "delta hash = " TYPEELEM "\n", (StackIntElement_t) stk->size * elem);
 
     // fprintf(fileerr, "%d", i++);
 
@@ -120,7 +119,7 @@ int StackPush(Stack_t* stk, StackElement_t elem, int line) {
     return err;
 }
 
-int StackPop(Stack_t* stk, StackElement_t* elem, int line) {
+int StackIntPop(StackInt_t* stk, StackIntElement_t* elem, int line) {
     assert(stk);
     assert(elem);
 
@@ -168,7 +167,7 @@ int StackPop(Stack_t* stk, StackElement_t* elem, int line) {
     return err;
 }
 
-int StackTop(Stack_t* stk, StackElement_t* elem, int line) {
+int StackIntTop(StackInt_t* stk, StackIntElement_t* elem, int line) {
     
     int err = 0;
     
@@ -199,20 +198,13 @@ int StackTop(Stack_t* stk, StackElement_t* elem, int line) {
     return err;
 }
 
-int StackDtor(Stack_t* stk, int line) {
+int StackIntDtor(StackInt_t* stk, int line) {
     
     int err = 0;
 
     ERRPRINTOK("")
 
     assert(stk);
-
-    for (int i = 0; i < stk->capasity; i++)
-    {
-        free(stk->data[i]);
-    }
-
-    printf("я в free\n");
 
     stk->size = 0;
     stk->capasity = 0;
@@ -228,10 +220,7 @@ int StackDtor(Stack_t* stk, int line) {
 
 }
 
-//0x10 
-//0x55
-
-int StackRealloc(Stack_t* stk, int line) {
+int StackIntRealloc(StackInt_t* stk, int line) {
     int err = 0;
     
     
@@ -239,9 +228,9 @@ int StackRealloc(Stack_t* stk, int line) {
     ONDEBAGHASH(stk->hash -= (size_t) stk->data);
 
     #ifdef CANARY
-    StackElement_t* stkreal = (StackElement_t* ) realloc(stk->data, (2 * (size_t) stk->capasity + 2) * sizeof(stk->data[0]));
+    StackIntElement_t* stkreal = (StackIntElement_t* ) realloc(stk->data, (2 * (size_t) stk->capasity + 2) * sizeof(stk->data[0]));
     #else
-    StackElement_t* stkreal = (StackElement_t* ) realloc(stk->data, (2 * (size_t) stk->capasity) * sizeof(stk->data[0]));
+    StackIntElement_t* stkreal = (StackIntElement_t* ) realloc(stk->data, (2 * (size_t) stk->capasity) * sizeof(stk->data[0]));
     #endif
 
     // fprintf(fileerr, "stkreal[%p]\n", stkreal);
@@ -264,7 +253,7 @@ int StackRealloc(Stack_t* stk, int line) {
             for (int i = stk->capasity + 1; i < stk->capasity * 2; i++) {
             // fprintf(fileerr, "i = %d\n", i);
 
-            stk->data[i] = NULL;
+            stk->data[i] = 0;
         }
     #endif
 
@@ -280,11 +269,11 @@ int StackRealloc(Stack_t* stk, int line) {
     return 0;
 }
 
-void StackPrint(Stack_t* stk)
+void StackIntPrint(StackInt_t* stk)
 {
     for (int i = 0; i < stk->size; i++)
     {
-        printf("%s ", stk->data[i]);
+        printf("%d ", stk->data[i]);
     }
 
     printf("\n");

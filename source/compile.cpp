@@ -31,11 +31,11 @@ CompNode_t* CompNodeNUMCtor(int val)
     return node;
 }
 
-CompNode_t* CompNodeVARCtor(int index_var)
+CompNode_t* CompNodeVARCtor(char* var)
 {
     CompNode_t* node = CompNodeCtor(VAR);
 
-    node->value.index_var = index_var;
+    node->value.var = var;
 
     return node;
 }

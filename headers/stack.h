@@ -86,7 +86,7 @@ int StackDump(Stack_t* stk, int err);
 int StackTop(Stack_t* stk, StackElement_t* elem, int line);
 int StackVerify(Stack_t* stk, int line, const char* funcname);
 int StackRealloc(Stack_t* stk, int line);
-int StackPrint(Stack_t* stk, int line);
+void StackPrint(Stack_t* stk);
 void ReallocArrPointData(void);
 
 

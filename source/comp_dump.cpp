@@ -4,7 +4,7 @@ FILE* file_htm = fopen("Logfile.htm", "w");
 
 static int index_png = 0;
 
-void CompDumpNode(CompNode_t* node, FILE* file_dump/*, Stack_t variables*/)
+void CompDumpNode(CompNode_t* node, FILE* file_dump, Stack_t variables)
 {       
     assert(node);
     
@@ -28,14 +28,14 @@ void CompDumpNode(CompNode_t* node, FILE* file_dump/*, Stack_t variables*/)
             break;
 
         case VAR:
-            PRINT_NODE_IMAGE("%d (\'%s\')", "\"#FF0C0C\"", /*variables.data[node->value.index_var].value*/ 0, /*variables.data[node->value.index_var].name_var*/ "var");
+            PRINT_NODE_IMAGE("(\'%s\')", "\"#FF0C0C\"", node->value.var);
             break;
 
         case VAR_INIT:
-            PRINT_NODE_IMAGE(" (\'%s\')", "\"#00ccffff\"", /*variables.data[node->value.index_var].value*//*variables.data[node->value.index_var].name_var*/ "VAR INTT");
+            PRINT_NODE_IMAGE(" (\'%s\')", "\"#00ccffff\"", variables.data[node->value.index_var]);
             break;
         case FUNC_INIT:
-            PRINT_NODE_IMAGE(" (\'%s\')", "\"#00ccffff\"", /*variables.data[node->value.index_var].value*//*variables.data[node->value.index_var].name_var*/ "VAR INTT");
+            PRINT_NODE_IMAGE(" (\'%s\')", "\"#a600ffff\"", /*variables.data[node->value.index_var].value*//*variables.data[node->value.index_var].name_var*/ "FUNC INTT");
             break;
 
         default:
@@ -44,26 +44,26 @@ void CompDumpNode(CompNode_t* node, FILE* file_dump/*, Stack_t variables*/)
 
     if (node->left != NULL) 
     {
-        CompDumpNode(node->left, file_dump/*, variables*/);
+        CompDumpNode(node->left, file_dump, variables);
         PRINT_IMAGE("\tnode%p -> node%p [color = \"blue\"]\n ", node, node->left);
     }
     
     if (node->right != NULL)
     {
-        CompDumpNode(node->right, file_dump/*, variables*/);
+        CompDumpNode(node->right, file_dump, variables);
         PRINT_IMAGE("\tnode%p -> node%p [color = \"red\"]\n", node, node->right);
     }
     
     #undef PRINT_NODE_IMAGE
 }
 
-void CompDumpImage(CompNode_t* node)
+void CompDumpImage(CompNode_t* node, Stack_t variables)
 {   
     const char* filename = "Comp_dump.txt";
     FILE* file_dump = fopen(filename, "w");
     
     PRINT_IMAGE("digraph {\n");
-    CompDumpNode(node, file_dump/*, variables*/);
+    CompDumpNode(node, file_dump, variables);
 
     PRINT_IMAGE("}");
     
@@ -79,12 +79,12 @@ void CompDumpImage(CompNode_t* node)
     index_png++;
 }
 
-void CompDump(CompNode_t* node, const char* text/*, Stack_t variables*/)
+void CompDump(CompNode_t* node, const char* text, Stack_t variables)
 {
     PRINT_HTM("<pre>\n");
     PRINT_HTM("\t<h3>DUMP %s</h3>\n", text);
     
-    CompDumpImage(node/*, variables*/);
+    CompDumpImage(node, variables);
     
     PRINT_HTM("Image: \n <img src= \"pictures/graph%d.png\">", index_png - 1);
     PRINT_HTM("</pre>");

@@ -202,8 +202,9 @@ int StackTokDtor(StackTok_t* stk, int line) {
 
     assert(stk);
 
-    for (int i = 0; i < stk->capasity; i++)
+    for (int i = 0; i < stk->size; i++)
     {
+        if (stk->data[i]->type == VAR) free(stk->data[i]->value.var);
         free(stk->data[i]);
     }
 

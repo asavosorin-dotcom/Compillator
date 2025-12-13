@@ -2,7 +2,9 @@
 
 int ifTokenMath(CompNode_t* token);
 int isvariable(char* str, Stack_t* variables);
+int isfunction(char* name, Stack_t functions);
 int get_len_name(const char* s);
+int var_init(char* var, StackInt_t* init_index_var, Stack_t variables);
 // положение токена
 // логичсеская часть
 // надо подумать о переменных, обработка ошибок при отсутствии инициализации переменной
@@ -20,6 +22,8 @@ int get_len_name(const char* s);
 
 #define aa printf("%s:%d [%d]push node = [%p]\n", __FILE__, __LINE__, tokens->size, node);
 #define $ printf("%s:%d [%d]token = [%p]\n", __FILE__, __LINE__, *token_pos, Token); 
+
+#define PARAMS_FUNC_CALL tokens, token_pos, init_index_var, variables
 
 #define Token tokens->data[*token_pos]
 #define TOKEN_NULL if (Token == NULL) return NULL;
@@ -194,19 +198,28 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
 
             // тут будет условие для функции
             
-            char* var = strndup(s, var_len);
+            char* name = strndup(s, var_len);
             s += var_len;
 
-            int index_var = isvariable(var, variables);
+            int index_func = isfunction(name, *functions);
+
+            if (index_func != -1)
+            {
+                node = CompNodeCtor(FUNC);
+                node->value.index_var = index_func;
+                TOKPUSH(*tokens, node);
+                continue;
+            }
+
+            int index_var = isvariable(name, variables);
             
             if (index_var == -1)
             {
                 PRINT_ERR("Uninitialized variable [%s]", var);
                 continue;
             }
-            free(var);
 
-            node = CompNodeVARCtor(index_var);
+            node = CompNodeVARCtor(name);
             TOKPUSH(*tokens, node);
             aa
             
@@ -217,6 +230,9 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
 
         PRINT_ERR("Syntax_error: %c\n", *s);
     }
+
+    printf("---------------------------------------\n");
+    StackPrint(variables);
 
     return tokens->size;
 }
@@ -244,11 +260,15 @@ int get_len_name(const char* s)
     return var_len;
 }
 
-CompNode_t* GetGeneral(StackTok_t* tokens)
+CompNode_t* GetGeneral(StackTok_t* tokens, Stack_t* variables)
 {
+    StackInt_t init_index_var = {};
+    INIT_INTSTACK(init_index_var, 7);
+    
     int token_pos = 0;
-    CompNode_t* node = GetOperation(tokens, &token_pos);
+    CompNode_t* node = GetOperation(tokens, &token_pos, &init_index_var, variables);
 
+    INTDTOR(init_index_var);
     if (tokens->data[token_pos] == NULL)
     {
         return node;
@@ -262,13 +282,13 @@ CompNode_t* GetGeneral(StackTok_t* tokens)
 // IF    -> "if" (Expression) '{' {IF|EQ}+ '}'
 // Equat -> {{VAR '='} Expression} ';' | Expression 
 
-CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetOperation(PARAMS_FUNC)
 {
     TOKEN_NULL
     
-    CompNode_t* node_left = GetIf(tokens, token_pos);
-    if (node_left == NULL) node_left = GetFunction(tokens, token_pos);
-    if (node_left == NULL) node_left = GetEquat(tokens, token_pos);
+    CompNode_t* node_left = GetIf(PARAMS_FUNC_CALL);
+    if (node_left == NULL) node_left = GetFunction(PARAMS_FUNC_CALL);
+    if (node_left == NULL) node_left = GetEquat(PARAMS_FUNC_CALL);
 
     if (node_left == NULL)
     {
@@ -276,7 +296,7 @@ CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
         return NULL;
     }
 
-    CompDump(Token, "token sep");
+    // CompDump(Token, "token sep");
     CompNode_t* sep = Token;
     
     (*token_pos)++;
@@ -289,10 +309,10 @@ CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
     
     sep->left = node_left;
     
-    CompNode_t* node_right = GetOperation(tokens, token_pos);
+    CompNode_t* node_right = GetOperation(PARAMS_FUNC_CALL);
     sep->right = node_right;
     
-    CompDump(sep, "sep");
+    // CompDump(sep, "sep");
     return sep;
 }
 
@@ -304,19 +324,49 @@ CompNode_t* GetOperation(StackTok_t* tokens, int* token_pos)
                              (*token_pos)++;                                       \
 
 
-CompNode_t* GetFunction(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetFunction(PARAMS_FUNC)
 {
     if (Token->type != FUNC_INIT) return NULL;
     CompNode_t* func_init = Token;
     (*token_pos)++;
 
+    int size_init_var_before = init_index_var->size;
+
+    printf(BOLD_BLUE "size_init_stack = %d\n", init_index_var->size);
+
     check_for(PAP_OPEN, "(");
-    CompNode_t* param = GetVariable(tokens, token_pos);  
+    CompDump(Token, "token", *variables);
+    CompNode_t* param = GetVariable(PARAMS_FUNC_CALL);  
     check_for(PAP_CLOSE, ")");
 
+    CompDump(param, "param", *variables);
+
+    printf(BOLD_BLUE "size_init_stack = %d\n", init_index_var->size);
+
+    init_index_var->start = size_init_var_before;
+    printf("\n\nstart = %d\n\n", init_index_var->start);
+    
     check_for(BEGIN, "{");
-    CompNode_t* main_body = GetOperation(tokens, token_pos);
+    CompNode_t* main_body = GetOperation(PARAMS_FUNC_CALL);
     check_for(END, "}");
+
+    CompDump(main_body, "func", *variables);
+
+    int size_init_var_after = init_index_var->size;
+    
+    int count_init_var = size_init_var_after - size_init_var_before;
+    
+    printf(BOLD_BLUE "size_init_stack = %d\n", init_index_var->size);
+
+    for (int count = 0; count < count_init_var; count++)
+    {
+        int elem = 0;
+        INTPOP(*init_index_var, elem);
+    }
+
+    printf(BOLD_BLUE "size_init_stack = %d\n" RESET, init_index_var->size);
+
+    init_index_var->start = 0;
 
     func_init->left = param;
     func_init->right = main_body;
@@ -324,7 +374,7 @@ CompNode_t* GetFunction(StackTok_t* tokens, int* token_pos)
     return func_init;
 }
 
-CompNode_t* GetIf(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetIf(PARAMS_FUNC)
 {
     TOKEN_NULL
     
@@ -333,15 +383,15 @@ CompNode_t* GetIf(StackTok_t* tokens, int* token_pos)
     (*token_pos)++;
 
     check_for(PAP_OPEN, "(");
-    CompNode_t* condition = GetExpression(tokens, token_pos);
+    CompNode_t* condition = GetExpression(PARAMS_FUNC_CALL);
     check_for(PAP_CLOSE, ")");
 
-    CompDump(condition, "condition");
+    // CompDump(condition, "condition", variables);
     $
 
     check_for(BEGIN, "{");
-    CompNode_t* main_body = GetOperation(tokens, token_pos);
-    CompDump(main_body, "main_body");
+    CompNode_t* main_body = GetOperation(PARAMS_FUNC_CALL);
+    // CompDump(main_body, "main_body");
     $
     check_for(END, "}");
     
@@ -351,22 +401,22 @@ CompNode_t* GetIf(StackTok_t* tokens, int* token_pos)
     return if_node;
 }
 
-CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetEquat(PARAMS_FUNC)
 {
     TOKEN_NULL
     
-    CompNode_t* var = GetVariable(tokens, token_pos);
+    CompNode_t* var = GetVariable(PARAMS_FUNC_CALL);
     
     if ((var == NULL) || !node_is_op(Token, EQ)) 
     {
         (*token_pos)--;
-        return GetExpression(tokens, token_pos);
+        return GetExpression(PARAMS_FUNC_CALL);
     }
 
     CompNode_t* eq = Token;
     (*token_pos)++;
     
-    CompNode_t* expr = GetExpression(tokens, token_pos);
+    CompNode_t* expr = GetExpression(PARAMS_FUNC_CALL);
     
     eq->left = var;
     eq->right = expr;
@@ -374,11 +424,11 @@ CompNode_t* GetEquat(StackTok_t* tokens, int* token_pos)
     return eq;
 }
 
-CompNode_t* GetExpression(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetExpression(PARAMS_FUNC)
 {
     $
     TOKEN_NULL
-    CompNode_t* expr1 = GetMul(tokens, token_pos);
+    CompNode_t* expr1 = GetMul(PARAMS_FUNC_CALL);
 
     // возможны проблемы с тем, что там не степень (оператор)
 
@@ -394,7 +444,7 @@ CompNode_t* GetExpression(StackTok_t* tokens, int* token_pos)
         CompNode_t* op = Token;
         (*token_pos)++;
         $
-        CompNode_t* expr2 = GetMul(tokens, token_pos);
+        CompNode_t* expr2 = GetMul(PARAMS_FUNC_CALL);
         $
         // (*token_pos)++;
 
@@ -415,11 +465,11 @@ CompNode_t* GetExpression(StackTok_t* tokens, int* token_pos)
     return expr1;
 }
 
-CompNode_t* GetMul(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetMul(PARAMS_FUNC)
 {
     TOKEN_NULL
     
-    CompNode_t* expr1 = GetDegree(tokens, token_pos);
+    CompNode_t* expr1 = GetDegree(PARAMS_FUNC_CALL);
     
     // (*token_pos)++; 
     
@@ -438,7 +488,7 @@ CompNode_t* GetMul(StackTok_t* tokens, int* token_pos)
         
         (*token_pos)++;
         
-        CompNode_t* expr2 = GetDegree(tokens, token_pos);
+        CompNode_t* expr2 = GetDegree(PARAMS_FUNC_CALL);
         
         // (*tokens_pos)++
 
@@ -454,11 +504,11 @@ CompNode_t* GetMul(StackTok_t* tokens, int* token_pos)
     return expr1;
 }
 
-CompNode_t* GetDegree(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetDegree(PARAMS_FUNC)
 {
     TOKEN_NULL
     
-    CompNode_t* expr = GetMathCommand(tokens, token_pos);
+    CompNode_t* expr = GetMathCommand(PARAMS_FUNC_CALL);
     
     // (*token_pos)++;
 
@@ -474,7 +524,7 @@ CompNode_t* GetDegree(StackTok_t* tokens, int* token_pos)
         
         (*token_pos)++;
         
-        CompNode_t* deg_node = GetMathCommand(tokens, token_pos);
+        CompNode_t* deg_node = GetMathCommand(PARAMS_FUNC_CALL);
         
         op->left  = expr;
         op->right = deg_node;
@@ -488,7 +538,7 @@ CompNode_t* GetDegree(StackTok_t* tokens, int* token_pos)
     return expr;
 }
 
-CompNode_t* GetMathCommand(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetMathCommand(PARAMS_FUNC)
 {
     TOKEN_NULL
 
@@ -498,7 +548,7 @@ CompNode_t* GetMathCommand(StackTok_t* tokens, int* token_pos)
         printf("command = [%p]\n", command);
         (*token_pos)++;
         $
-        CompNode_t* argument = GetPermissionExp(tokens, token_pos);
+        CompNode_t* argument = GetPermissionExp(PARAMS_FUNC_CALL);
         printf("argument[%p]\n", argument);
         command->left = argument;
         command->left->parent = command;
@@ -507,7 +557,7 @@ CompNode_t* GetMathCommand(StackTok_t* tokens, int* token_pos)
     }
     else
     {
-        return GetPermissionExp(tokens, token_pos);
+        return GetPermissionExp(PARAMS_FUNC_CALL);
     }
 }
 
@@ -521,7 +571,7 @@ int ifTokenMath(CompNode_t* token)
     return NO;
 }
 
-CompNode_t* GetPermissionExp(StackTok_t* tokens, int* token_pos) // переделать название
+CompNode_t* GetPermissionExp(PARAMS_FUNC) // переделать название
 {
     TOKEN_NULL
 
@@ -533,7 +583,7 @@ CompNode_t* GetPermissionExp(StackTok_t* tokens, int* token_pos) // переде
             // free(Token);
             (*token_pos)++; // пропуск PAP_OPEN
             $
-            CompNode_t* node = GetExpression(tokens, token_pos); // сделать норм проверку
+            CompNode_t* node = GetExpression(PARAMS_FUNC_CALL); // сделать норм проверку
             $
             if (Token->value.oper != PAP_CLOSE) //  
             {
@@ -548,34 +598,46 @@ CompNode_t* GetPermissionExp(StackTok_t* tokens, int* token_pos) // переде
         }
         else
         {
-            // return GetExpression(tokens, token_pos);
+            // return GetExpression(PARAMS_FUNC_CALL);
             return NULL;
         }
     }
     else
     {
         $
-        return GetVarOrNum(tokens, token_pos);
+        return GetVarOrNum(PARAMS_FUNC_CALL);
     }
 }
 
-CompNode_t* GetVarOrNum(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetVarOrNum(PARAMS_FUNC)
 {
     TOKEN_NULL
-    else if (Token->type == NUM) return GetNumber   (tokens, token_pos);
-    else                         return GetVariable (tokens, token_pos);
+    else if (Token->type == NUM) return GetNumber   (PARAMS_FUNC_CALL);
+    else                         return GetVariable (PARAMS_FUNC_CALL);
 }
 
-CompNode_t* GetVariable(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetVariable(PARAMS_FUNC)
 {
     TOKEN_NULL
     $
-    CompDump(Token, "var");
+    // CompDump(Token, "var");
 
     // if (Token->type = VAR_INIT)
     // {
     //     PUSH()
     // }
+
+    if (Token->type == VAR_INIT) INTPUSH(*init_index_var, Token->value.index_var);
+
+    if (Token->type == VAR)
+    {
+        if (!var_init(Token->value.var, init_index_var, *variables)) 
+        {
+            $
+            PRINT_ERR("Uninitialized variable");
+            return NULL;
+        }
+    }
 
     if (Token->type == VAR || Token->type == VAR_INIT)
     {
@@ -586,7 +648,7 @@ CompNode_t* GetVariable(StackTok_t* tokens, int* token_pos)
     return NULL;
 } 
 
-CompNode_t* GetNumber(StackTok_t* tokens, int* token_pos)
+CompNode_t* GetNumber(PARAMS_FUNC)
 {
     TOKEN_NULL
     if (Token->type == NUM)
@@ -624,3 +686,37 @@ int node_is_op(CompNode_t* node, Operator_val_t val)
 
     return YES;
 }
+
+int var_init(char* var, StackInt_t* init_index_var, Stack_t variables)
+{
+    printf(BOLD_GREEN "\n start = %d\n" RESET, init_index_var->start);
+    printf(BOLD_GREEN "\n size = %d\n" RESET, init_index_var->size);
+    
+    StackIntPrint(init_index_var);
+    printf("var = %s\n", var);
+
+    for (int index = init_index_var->start; index < init_index_var->size; index++)
+    {
+        if (strcmp(var, variables.data[init_index_var->data[index]]) == 0)
+            return YES;
+    }
+
+    return NO;
+}
+
+int isfunction(char* name, Stack_t functions)
+{
+    int index_func = 0;
+    for (; index_func < functions.size; index_func++)
+    {
+        if (strcmp(name, functions.data[index_func]) == 0)
+            return index_func;        
+    }
+
+    return -1;
+}
+
+// int node_is_func(CompNode_t* node, Stack_t functions)
+// {
+
+// }

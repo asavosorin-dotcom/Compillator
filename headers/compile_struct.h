@@ -5,7 +5,7 @@
 #include "stack.h"
 #include "stack_tokens.h"
 
-#define OP_CAPASITY   21
+#define OP_CAPASITY   23
 #define TYPE_CAPASITY 6
 
 extern struct Operator_t arr_operators[OP_CAPASITY];
@@ -36,8 +36,8 @@ enum Operator_val_t {
                      END       = 19,
                      WHILE     = 20,
 
-                     PAP_OPEN  = 50,
-                     PAP_CLOSE = 51
+                     PAP_OPEN  = 21,
+                     PAP_CLOSE = 22,
                     };
 
 enum Flag_t  {NO = 0, YES = 1};
@@ -54,6 +54,7 @@ union Value_t
     Operator_val_t oper;
     int            index_var;
     int            num;
+    char*          var;
 };
 
 struct Operator_t

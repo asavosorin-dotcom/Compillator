@@ -17,11 +17,17 @@ int main(int argc, char* argv[])
     // const char* s = "if (x - 3) {x = 3;} c = 5;";
     size_t count_lex = GetLex(buffer + 1, &tokens, &variables, &functions);
 
+    for (int i = 0; i < tokens.size - 1; i++)
+    {
+        // PRINT_HTM("%d\n", i);
+        CompDump(tokens.data[i], "token", variables);
+    }
+
     printf("Token_size = %zu\n", tokens.capasity);
 
-    CompNode_t* root = GetGeneral(&tokens);
+    CompNode_t* root = GetGeneral(&tokens, &variables);
 
-    CompDump(root, "first dump");
+    CompDump(root, "first dump", variables);
 
     DTOR(variables);
     DTOR(functions);

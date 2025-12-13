@@ -22,6 +22,8 @@ Operator_t arr_operators[OP_CAPASITY] = {
                                          "{"     , CountHash("{")     ,   "{"    , BEGIN,
                                          "}"     , CountHash("}")     ,   "}"    , END  ,
                                          "while" , CountHash("while") ,   "WHILE", WHILE,
+                                         "("     , CountHash("(")     ,   "("    , PAP_OPEN,
+                                         ")"     , CountHash(")")     ,   ")"    , PAP_CLOSE,
                                          };
 
 // Variable_t arr_variable[VAR_CAPASITY] = { 
