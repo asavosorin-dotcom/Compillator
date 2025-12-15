@@ -16,11 +16,15 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
 CompNode_t* GetGeneral       (StackTok_t* tokens, Stack_t* variables);
 CompNode_t* GetOperation     (PARAMS_FUNC);
 CompNode_t* GetFunction      (PARAMS_FUNC);
+CompNode_t* GetReturn        (PARAMS_FUNC);
+CompNode_t* GetPrint         (PARAMS_FUNC);
+CompNode_t* GetCommas        (PARAMS_FUNC);
 CompNode_t* GetIf            (PARAMS_FUNC);
 CompNode_t* GetEquat         (PARAMS_FUNC);
 CompNode_t* GetExpression    (PARAMS_FUNC);
 CompNode_t* GetMul           (PARAMS_FUNC);
 CompNode_t* GetDegree        (PARAMS_FUNC);
+CompNode_t* GetCommand       (PARAMS_FUNC);
 CompNode_t* GetMathCommand   (PARAMS_FUNC);
 CompNode_t* GetPermissionExp (PARAMS_FUNC);
 CompNode_t* GetVarOrNum      (PARAMS_FUNC);
@@ -28,5 +32,7 @@ CompNode_t* GetVariable      (PARAMS_FUNC);
 CompNode_t* GetNumber        (PARAMS_FUNC);
 
 int node_is_op(CompNode_t* node, Operator_val_t val);
+
+void CompPrintNode(const CompNode_t* node, FILE* file_print, Stack_t* variables, Stack_t* functions);
 
 #endif

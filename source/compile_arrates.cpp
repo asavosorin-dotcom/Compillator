@@ -24,6 +24,9 @@ Operator_t arr_operators[OP_CAPASITY] = {
                                          "while" , CountHash("while") ,   "WHILE", WHILE,
                                          "("     , CountHash("(")     ,   "("    , PAP_OPEN,
                                          ")"     , CountHash(")")     ,   ")"    , PAP_CLOSE,
+                                         ","     , CountHash(",")     ,   ","    , COMMA,
+                                         "return", CountHash("return"),   "RET"  , RETURN,
+                                         "print", CountHash("print"),   "PRINT"  , PRINT,
                                          };
 
 // Variable_t arr_variable[VAR_CAPASITY] = { 
@@ -35,4 +38,4 @@ Operator_t arr_operators[OP_CAPASITY] = {
 // стэк с переменными, хранить ее имя, 
 // стэк со структурами, c переменной ее индексом и значением, а хранить только индекс  
 
-const char* arr_types[TYPE_CAPASITY] = {"NUM", "OP", "VAR", "VAR_INIT"};
+const char* arr_types[TYPE_CAPASITY] = {"NUM", "OP", "VAR", "VAR_INIT", "FUNC", "FUNC_INIT"};

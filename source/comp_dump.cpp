@@ -31,6 +31,10 @@ void CompDumpNode(CompNode_t* node, FILE* file_dump, Stack_t variables)
             PRINT_NODE_IMAGE("(\'%s\')", "\"#FF0C0C\"", node->value.var);
             break;
 
+        case FUNC:
+            PRINT_NODE_IMAGE("(\'%s\')", "\"#e3ff0cff\"", "FUNC_NAME");
+            break;
+            
         case VAR_INIT:
             PRINT_NODE_IMAGE(" (\'%s\')", "\"#00ccffff\"", variables.data[node->value.index_var]);
             break;

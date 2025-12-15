@@ -23,12 +23,16 @@ int main(int argc, char* argv[])
         CompDump(tokens.data[i], "token", variables);
     }
 
-    printf("Token_size = %zu\n", tokens.capasity);
+    printf("Token_size = %zu\n", tokens.size);
 
     CompNode_t* root = GetGeneral(&tokens, &variables);
 
     CompDump(root, "first dump", variables);
 
+    FILE* file_print = fopen("code_file.txt", "w");
+    CompPrintNode(root, file_print, &variables, &functions);
+
+    fclose(file_print);
     DTOR(variables);
     DTOR(functions);
     TOKDTOR(tokens);
