@@ -19,7 +19,8 @@
 #define _DIV_      ASM_("DIV\n")
 #define _OUT_      ASM_("OUT\n")
 #define _DEG_      ASM_("POW\n")
-// #define 
+
+#define _JE_       ASM_("JE ")
 
 void MakeASMCode(CompNode_t* root, Stack_t* variables)
 {
@@ -27,7 +28,7 @@ void MakeASMCode(CompNode_t* root, Stack_t* variables)
 
     MakeASMNode(root, file_asm, variables);
     ASM_("HLT")
-    
+
     fclose(file_asm);
 }
 
@@ -35,6 +36,19 @@ void MakeASMNode(CompNode_t* node, FILE* file_asm, Stack_t* variables)
 {
     if (node->left != NULL)
         MakeASMNode(node->left, file_asm, variables);
+
+    //---------------------------------------------------------------------------------------------------------------
+    if (node->type == OP)
+    {
+        if (node->value.oper == IF)
+        {
+            PUSH_(0)
+            _JE_
+            ASM_(":if%p\n", node);
+        }
+    }
+    //---------------------------------------------------------------------------------------------------------------
+
 
     if (node->right != NULL)
         MakeASMNode(node->right, file_asm, variables);
@@ -90,6 +104,11 @@ void MakeASMOP(CompNode_t* node, FILE* file_asm)
         case EQ:
             POPR_("HX")
             POPM_("AX")
+            break;
+
+        case IF:
+            ASM_(":if%p\n", node);
+            break;
 
         default:
             break;
