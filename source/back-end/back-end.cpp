@@ -21,6 +21,16 @@
 #define _DEG_      ASM_("POW\n")
 // #define 
 
+void MakeASMCode(CompNode_t* root, Stack_t* variables)
+{
+    FILE* file_asm = fopen("code_asm.asm", "w");
+
+    MakeASMNode(root, file_asm, variables);
+    ASM_("HLT")
+    
+    fclose(file_asm);
+}
+
 void MakeASMNode(CompNode_t* node, FILE* file_asm, Stack_t* variables)
 {
     if (node->left != NULL)

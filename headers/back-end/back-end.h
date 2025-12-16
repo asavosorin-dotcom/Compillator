@@ -7,6 +7,7 @@
 
 int get_index(char* string, Stack_t* stack);
 
+void MakeASMCode(CompNode_t* root, Stack_t* variables);
 void MakeASMNode(CompNode_t* node, FILE* file_asm, Stack_t* variables);
 void MakeASMOP(CompNode_t* node, FILE* file_asm);
 

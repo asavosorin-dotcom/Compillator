@@ -8,7 +8,6 @@ int main()
     Stack_t functions = {};
     INITSTACK(functions, 8);
 
-    FILE* file_asm = fopen("code_asm.asm", "w");
 
     char* buffer = CreateBuffer("code_file.txt").buff;
     printf("buffer: %s\n", buffer + 1);
@@ -18,8 +17,10 @@ int main()
 
     StackPrint(&variables);
 
-    MakeASMNode(root, file_asm, &variables);
+    MakeASMCode(root, &variables);
 
-    fclose(file_asm);
+    DTOR(variables);
+    DTOR(functions);
+    CompDtor(root);
     free(buffer);
 }
