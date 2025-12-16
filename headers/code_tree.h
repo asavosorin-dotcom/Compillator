@@ -12,5 +12,6 @@
 CompNode_t* ReadNode(char* buffer);
 void CompPrintNode(const CompNode_t* node, FILE* file_print, Stack_t* variables, Stack_t* functions);
 void CompPrintNodeMiddle(const CompNode_t* node, FILE* file_print);
+CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, Stack_t* functions);
 
 #endif

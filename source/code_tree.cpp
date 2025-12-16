@@ -56,6 +56,106 @@ void CompPrintNode(const CompNode_t* node, FILE* file_print, Stack_t* variables,
     #undef PRINT_FILE
 }
 
+CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, Stack_t* functions)
+{
+    // printf(BOLD_BLUE "In beginnig read: [%s]\n" RESET, buffer + *pos);
+    static int pos = 0;
+
+    printf("pos = [%d]\n", pos);
+
+    pos += skip_space(buffer + pos);
+
+    if (buffer[pos] == '(')
+    {
+        pos++; // пропуск скобки
+
+        CompNode_t* node = CompNodeCtor(GetType(&pos, buffer));
+
+        Value_t val = {};
+        
+        switch (node->type)
+        {
+            case NUM:
+                val.num = GetNumber(&pos, buffer);
+                break;
+
+            case OP:
+                val.oper = GetOP(&pos, buffer);
+                break;
+
+            case FUNC:
+            [[fallthrough]]
+            case VAR:
+                val.var = GetString(&pos, buffer);
+                break;
+                 
+                case VAR_INIT:
+                 printf(BOLD_RED "Entered VAR_INIT case\n");
+                {
+                    char* string = GetString(&pos, buffer);
+                    printf(BOLD_GREEN "string: %s\n", string);
+                    fflush(stdout);
+                    PUSH(*variables, string);
+                    val.index_var = variables->size - 1;
+                    break;
+                }
+
+            case FUNC_INIT:
+                {
+                    char* string = GetString(&pos, buffer);
+                    PUSH(*functions, string);
+                    val.index_var = functions->size - 1;
+                    break;
+                }
+
+            default:
+                PRINT_ERR("Unknown code %d\n", node->type);                
+        }
+
+        node->value = val;
+
+        pos += skip_space(buffer + pos);
+
+        node->left = ReadNodeBack(buffer, variables, functions);
+        
+        // if (node->left != NULL)
+        // {
+        //     node->left->parent = node;
+        // }        
+
+        node->right = ReadNodeBack(buffer, variables, functions);
+        
+        // if (node->right != NULL)
+        // {
+        //     node->right->parent = node; 
+        //     node->right->yes_no = FLAG_NO;
+        // }
+        
+        pos += skip_space(buffer + pos);
+
+        if (buffer[pos] == ')')
+            (pos)++;
+            
+        printf("[%s]\n", buffer + pos);
+        return node;
+    }
+    else if (buffer[pos] == 'n' && buffer[pos + 1] == 'i' && buffer[pos + 2] == 'l')
+    {
+        pos += skip_space(buffer + pos);
+        pos += strlen("nil");
+        printf("nil\n");
+        // printf("if nil [%s]\n", buffer + *pos);
+        return NULL;
+    }
+    else 
+    {
+        printf("[%s]\n", buffer);
+        // printf(RED "ERROR format code tree\n" RESET);
+        return NULL;
+    }
+    // return ;
+}
+
 CompNode_t* ReadNode(char* buffer)
 {
     // printf(BOLD_BLUE "In beginnig read: [%s]\n" RESET, buffer + *pos);
@@ -141,6 +241,91 @@ CompNode_t* ReadNode(char* buffer)
     // return ;
 }
 
+// CompNode_t* ReadNode(char* buffer)
+// {
+//     // printf(BOLD_BLUE "In beginnig read: [%s]\n" RESET, buffer + *pos);
+//     static int pos = 0;
+
+//     printf("pos = [%d]\n", pos);
+
+//     pos += skip_space(buffer + pos);
+
+//     if (buffer[pos] == '(')
+//     {
+//         pos++; // пропуск скобки
+
+//         CompNode_t* node = CompNodeCtor(GetType(&pos, buffer));
+
+//         Value_t val = {};
+
+//         switch (node->type)
+//         {
+//             case NUM:
+//                 val.num = GetNumber(&pos, buffer);
+//                 break;
+
+//             case OP:
+//                 val.oper = GetOP(&pos, buffer);
+//                 break;
+
+//             case VAR:
+//             [[fallthrough]]
+//             case VAR_INIT:
+//             [[fallthrough]]
+//             case FUNC:
+//             [[fallthrough]]
+//             case FUNC_INIT:
+//                 val.var = GetString(&pos, buffer);
+//                 break;
+
+//             default:
+//                 PRINT_ERR("Unknown code %d\n", node->type);                
+//         }
+
+//         node->value = val;
+
+//         pos += skip_space(buffer + pos);
+
+//         node->left = ReadNode(buffer);
+        
+//         // if (node->left != NULL)
+//         // {
+//         //     node->left->parent = node;
+//         // }        
+
+//         node->right = ReadNode(buffer);
+        
+//         // if (node->right != NULL)
+//         // {
+//         //     node->right->parent = node; 
+//         //     node->right->yes_no = FLAG_NO;
+//         // }
+        
+//         pos += skip_space(buffer + pos);
+
+//         if (buffer[pos] == ')')
+//             (pos)++;
+            
+//         printf("[%s]\n", buffer + pos);
+//         return node;
+//     }
+//     else if (buffer[pos] == 'n' && buffer[pos + 1] == 'i' && buffer[pos + 2] == 'l')
+//     {
+//         pos += skip_space(buffer + pos);
+//         pos += strlen("nil");
+//         printf("nil\n");
+//         // printf("if nil [%s]\n", buffer + *pos);
+//         return NULL;
+//     }
+//     else 
+//     {
+//         printf("[%s]\n", buffer);
+//         // printf(RED "ERROR format code tree\n" RESET);
+//         return NULL;
+//     }
+//     // return ;
+// }
+
 void CompPrintNodeMiddle(const CompNode_t* node, FILE* file_print)
 {
     #define PRINT_FILE(...) fprintf(file_print, __VA_ARGS__)
@@ -225,7 +410,7 @@ Type_t GetType(int* pos, char* buffer)
     char type_name[10] = "";
     sscanf(buffer + *pos, " \"%s %n", type_name, &len);
 
-    printf("len = %d\n", len);
+    // printf("len = %d\n", len);
     printf("type_name = [%s]\n", type_name);
 
     *pos += len;

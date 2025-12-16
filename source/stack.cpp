@@ -282,6 +282,8 @@ int StackRealloc(Stack_t* stk, int line) {
 
 void StackPrint(Stack_t* stk)
 {
+    printf(BOLD_MAGENTA "stack_print\n" RESET);
+    
     for (int i = 0; i < stk->size; i++)
     {
         printf("%s ", stk->data[i]);
