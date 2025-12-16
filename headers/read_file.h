@@ -33,6 +33,4 @@ CompNode_t* GetNumber        (PARAMS_FUNC);
 
 int node_is_op(CompNode_t* node, Operator_val_t val);
 
-void CompPrintNode(const CompNode_t* node, FILE* file_print, Stack_t* variables, Stack_t* functions);
-
 #endif

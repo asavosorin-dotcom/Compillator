@@ -14,6 +14,10 @@ void CompDumpNode  (CompNode_t* node, FILE* file_dump, Stack_t variables);
 void CompDumpImage (CompNode_t* node, Stack_t variables);
 void CompDump      (CompNode_t* node, const char* text, Stack_t variables);
 
+void CompDumpNodeString  (CompNode_t* node, FILE* file_dump);
+void CompDumpImageString (CompNode_t* node);
+void CompDumpString      (CompNode_t* node, const char* text);
+
 #define PRINT_IMAGE(...) fprintf(file_dump, __VA_ARGS__)
 #define PRINT_HTM(...)   fprintf(file_htm, __VA_ARGS__)
 

@@ -38,4 +38,10 @@ Operator_t arr_operators[OP_CAPASITY] = {
 // стэк с переменными, хранить ее имя, 
 // стэк со структурами, c переменной ее индексом и значением, а хранить только индекс  
 
-const char* arr_types[TYPE_CAPASITY] = {"NUM", "OP", "VAR", "VAR_INIT", "FUNC", "FUNC_INIT"};
+Type_inf_t arr_types[TYPE_CAPASITY] =  {"NUM"      , NUM     ,
+                                        "OP"       , OP     ,
+                                        "VAR"      , VAR     ,
+                                        "VAR_INIT" , VAR_INIT,  
+                                        "FUNC"     , FUNC    ,
+                                        "FUNC_INIT", FUNC_INIT,
+                                    };

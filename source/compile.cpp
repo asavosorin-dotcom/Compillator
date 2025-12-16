@@ -13,6 +13,13 @@ CompNode_t* CompNodeCtor(Type_t type)
     return node;
 }
 
+CompNode_t* CompNodeEmptyCtor(void)
+{
+    CompNode_t* node = (CompNode_t* ) calloc(1, sizeof(CompNode_t));
+
+    return node;
+}
+
 CompNode_t* CompNodeOPCtor(Operator_val_t oper)
 {
     CompNode_t* node = CompNodeCtor(OP);
@@ -46,10 +53,9 @@ void CompDtor(CompNode_t* node)
     
     printf("node_free[%p]\n", node);
     
-    if (counter == 7)
-    return;
-    counter++;
-    
+    if ((node->type == VAR) || (node->type == VAR_INIT) || (node->type == FUNC) || (node->type == FUNC_INIT))
+        free(node->value.var);
+
     if (node->left != NULL)
         CompDtor(node->left);
 

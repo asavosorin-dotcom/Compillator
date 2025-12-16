@@ -6,6 +6,7 @@
 #include "compile_struct.h"
 
 CompNode_t* CompNodeCtor(Type_t type);
+CompNode_t* CompNodeEmptyCtor(void);
 
 CompNode_t* CompNodeOPCtor(Operator_val_t oper);
 CompNode_t* CompNodeNUMCtor(int val);

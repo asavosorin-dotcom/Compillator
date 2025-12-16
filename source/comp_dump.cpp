@@ -8,7 +8,7 @@ void CompDumpNode(CompNode_t* node, FILE* file_dump, Stack_t variables)
 {       
     assert(node);
     
-    #define PRINT_NODE_IMAGE(print_type, color, ...) PRINT_IMAGE("\tnode%p[label = \"{parent: %p | %p| TYPE: %s |VAL: " print_type " | {%p | %p}}\", shape = Mrecord, style = \"filled\", fillcolor = " color "]\n", node, node->parent, node, arr_types[node->type] , __VA_ARGS__, node->left, node->right);
+    #define PRINT_NODE_IMAGE(print_type, color, ...) PRINT_IMAGE("\tnode%p[label = \"{parent: %p | %p| TYPE: %s |VAL: " print_type " | {%p | %p}}\", shape = Mrecord, style = \"filled\", fillcolor = " color "]\n", node, node->parent, node, arr_types[node->type].name , __VA_ARGS__, node->left, node->right);
 
     // добавить разные формы и цвета для разных типов ячеек 
 
@@ -85,6 +85,8 @@ void CompDumpImage(CompNode_t* node, Stack_t variables)
 
 void CompDump(CompNode_t* node, const char* text, Stack_t variables)
 {
+    assert(node);
+    
     PRINT_HTM("<pre>\n");
     PRINT_HTM("\t<h3>DUMP %s</h3>\n", text);
     
@@ -96,3 +98,94 @@ void CompDump(CompNode_t* node, const char* text, Stack_t variables)
     fflush(file_htm);
 }
 
+void CompDumpNodeString(CompNode_t* node, FILE* file_dump)
+{       
+    assert(node);
+    
+    #define PRINT_NODE_IMAGE(print_type, color, ...) PRINT_IMAGE("\tnode%p[label = \"{parent: %p | %p| TYPE: %s |VAL: " print_type " | {%p | %p}}\", shape = Mrecord, style = \"filled\", fillcolor = " color "]\n", node, node->parent, node, arr_types[node->type].name , __VA_ARGS__, node->left, node->right);
+
+    // добавить разные формы и цвета для разных типов ячеек 
+
+    switch (node->type)
+    {
+        case OP:
+            if (node->value.oper == SEP)
+            {
+                PRINT_NODE_IMAGE("%s", "\"#ff00d0ff\"", arr_operators[node->value.oper].command_name);
+                break; 
+            }
+            PRINT_NODE_IMAGE("%s", "\"#5f5fffff\"", arr_operators[node->value.oper].command_name);
+            break;
+            
+        case NUM:
+            PRINT_NODE_IMAGE("%d", "\"#0CFF0C\"", node->value.num);
+            break;
+
+        case VAR:
+            PRINT_NODE_IMAGE("(\'%s\')", "\"#FF0C0C\"", node->value.var);
+            break;
+
+        case FUNC:
+            PRINT_NODE_IMAGE("(\'%s\')", "\"#e3ff0cff\"", node->value.var);
+            break;
+            
+        case VAR_INIT:
+            PRINT_NODE_IMAGE(" (\'%s\')", "\"#00ccffff\"", node->value.var);
+            break;
+        case FUNC_INIT:
+            PRINT_NODE_IMAGE(" (\'%s\')", "\"#a600ffff\"", node->value.var);
+            break;
+
+        default:
+            printf(BOLD_RED "This type doesn't exist\n" RESET);
+    }
+
+    if (node->left != NULL) 
+    {
+        CompDumpNodeString(node->left, file_dump);
+        PRINT_IMAGE("\tnode%p -> node%p [color = \"blue\"]\n ", node, node->left);
+    }
+    
+    if (node->right != NULL)
+    {
+        CompDumpNodeString(node->right, file_dump);
+        PRINT_IMAGE("\tnode%p -> node%p [color = \"red\"]\n", node, node->right);
+    }
+    
+    #undef PRINT_NODE_IMAGE
+}
+
+void CompDumpImageString(CompNode_t* node)
+{   
+    const char* filename = "Comp_dump.txt";
+    FILE* file_dump = fopen(filename, "w");
+    
+    PRINT_IMAGE("digraph {\n");
+    CompDumpNodeString(node, file_dump);
+
+    PRINT_IMAGE("}");
+    
+    char command[100] = "";
+    fclose(file_dump);
+    
+    sprintf(command, "dot \"%s\" -T png -o pictures/graph%d.png", filename, index_png);
+    // printf("command = %s\n", command);
+    system(command);
+
+    fflush(stdout);
+
+    index_png++;
+}
+
+void CompDumpString(CompNode_t* node, const char* text)
+{
+    PRINT_HTM("<pre>\n");
+    PRINT_HTM("\t<h3>DUMP %s</h3>\n", text);
+    
+    CompDumpImageString(node);
+    
+    PRINT_HTM("Image: \n <img src= \"pictures/graph%d.png\">", index_png - 1);
+    PRINT_HTM("</pre>\n");
+    
+    fflush(file_htm);
+}

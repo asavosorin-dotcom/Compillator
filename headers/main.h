@@ -12,5 +12,7 @@
 #include "stack_tokens.h"
 #include "comp_dump.h"
 #include "work_with_text.h"
+#include "code_tree.h"
+
 
 #endif

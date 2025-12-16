@@ -9,7 +9,7 @@
 #define TYPE_CAPASITY 6
 
 extern struct Operator_t arr_operators[OP_CAPASITY];
-extern const char* arr_types[TYPE_CAPASITY];
+extern struct Type_inf_t arr_types[TYPE_CAPASITY];
 
 enum Operator_val_t {
                      ADD       = 0, 
@@ -45,12 +45,18 @@ enum Operator_val_t {
                     };
 
 enum Flag_t  {NO = 0, YES = 1};
-enum Type_t  {NUM  = 0, OP = 1, VAR = 2, VAR_INIT = 3, FUNC = 4, FUNC_INIT = 5};
+enum Type_t  {NUM  = 0, OP = 1, VAR = 2, VAR_INIT = 3, FUNC = 4, FUNC_INIT = 5, NO_TYPE = 6};
 
 struct Variable_t
 {
     char* name_var;
     int   value;
+};
+
+struct Type_inf_t
+{
+    const char* name;
+    Type_t      code;
 };
 
 union Value_t
