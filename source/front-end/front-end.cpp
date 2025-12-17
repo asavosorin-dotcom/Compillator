@@ -437,25 +437,14 @@ CompNode_t* GetCommas(PARAMS_FUNC)
     CompNode_t* param = GetVariable(PARAMS_FUNC_CALL);
     CompNode_t* sep   = Token;
 
-    while (node_is_op(sep, COMMA))
+    
+    if (node_is_op(sep, COMMA))
     {
-        sep->left = param;
+        sep->left = param; 
         (*token_pos)++;
-        param = GetVariable(PARAMS_FUNC_CALL);
-
-        if (node_is_op(Token, COMMA))
-        {
-            sep->right = Token;
-            sep = Token;
-            (*token_pos)++; 
-            param = GetVariable(PARAMS_FUNC_CALL);
-        }
-        else
-            sep->right = param;
-            break;
+        sep->right = GetCommas(PARAMS_FUNC_CALL);
+        return sep;
     }
-
-    if (node_is_op(sep, COMMA)) return sep;
 
     return param;
 }

@@ -17,7 +17,7 @@ int main()
 
     StackPrint(&variables);
 
-    MakeASMCode(root, &variables);
+    MakeASMCode(root, &variables, &functions);
 
     DTOR(variables);
     DTOR(functions);
