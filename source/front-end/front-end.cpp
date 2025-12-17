@@ -512,8 +512,8 @@ CompNode_t* GetEquat(PARAMS_FUNC)
     CompNode_t* expr = GetExpression(PARAMS_FUNC_CALL);
     
     // Незаконная замена!!!!!!!!!!
-    eq->right = var;
-    eq->left = expr;
+    eq->left = var;
+    eq->right = expr;
     
     return eq;
 }

@@ -56,7 +56,7 @@ void CompPrintNode(const CompNode_t* node, FILE* file_print, Stack_t* variables,
     #undef PRINT_FILE
 }
 
-CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, Stack_t* functions)
+CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, StackFunc_t* functions)
 {
     // printf(BOLD_BLUE "In beginnig read: [%s]\n" RESET, buffer + *pos);
     static int pos = 0;
@@ -84,12 +84,25 @@ CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, Stack_t* functions)
                 break;
 
             case FUNC:
-            [[fallthrough]]
+                {
+                char* string = GetString(&pos, buffer);
+
+                for (int index = 0; index < functions->size; index++)
+                {
+                    if (strcmp(string, functions->data[index].name) == 0)
+                        val.index_var = index;
+                }
+
+                free(string);
+
+                break;
+                }
+
             case VAR:
                 val.var = GetString(&pos, buffer);
                 break;
                  
-                case VAR_INIT:
+            case VAR_INIT:
                  printf(BOLD_RED "Entered VAR_INIT case\n");
                 {
                     char* string = GetString(&pos, buffer);
@@ -97,19 +110,22 @@ CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, Stack_t* functions)
                     fflush(stdout);
                     PUSH(*variables, string);
                     val.index_var = variables->size - 1;
-                    break;
                 }
+                break;
 
             case FUNC_INIT:
                 {
-                    char* string = GetString(&pos, buffer);
-                    PUSH(*functions, string);
+                    Function_t func = {};
+                    
+                    func.name = GetString(&pos, buffer);
+                    FUNC_PUSH(*functions, func);
                     val.index_var = functions->size - 1;
                     break;
                 }
 
             default:
-                PRINT_ERR("Unknown code %d\n", node->type);                
+                PRINT_ERR("Unknown code %d\n", node->type);    
+                break;            
         }
 
         node->value = val;

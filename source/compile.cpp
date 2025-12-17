@@ -53,7 +53,7 @@ void CompDtor(CompNode_t* node)
     
     printf("node_free[%p]\n", node);
     
-    if ((node->type == VAR) || (node->type == FUNC))
+    if ((node->type == VAR))
         free(node->value.var);
         
     if (node->left != NULL)

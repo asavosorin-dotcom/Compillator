@@ -5,9 +5,11 @@ int main()
     Stack_t variables = {};
     INITSTACK(variables, 8);
     
-    Stack_t functions = {};
-    INITSTACK(functions, 8);
+    StackFunc_t functions = {};
+    INITStackFunc(functions, 8);
 
+    StackInt_t init_var = {};
+    INIT_INTSTACK(init_var, 8);
 
     char* buffer = CreateBuffer("code_file.txt").buff;
     printf("buffer: %s\n", buffer + 1);
@@ -17,10 +19,11 @@ int main()
 
     StackPrint(&variables);
 
-    MakeASMCode(root, &variables, &functions);
+    MakeASMCode(root, &variables, &functions, &init_var);
 
     DTOR(variables);
-    DTOR(functions);
+    FUNC_DTOR(functions);
+    INTDTOR(init_var);
     CompDtor(root);
     free(buffer);
 }
