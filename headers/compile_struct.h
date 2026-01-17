@@ -5,7 +5,7 @@
 #include "stack.h"
 #include "stack_tokens.h"
 
-#define OP_CAPASITY   26
+#define OP_CAPASITY   35
 #define TYPE_CAPASITY 6
 
 extern struct Operator_t arr_operators[OP_CAPASITY];
@@ -19,29 +19,34 @@ enum Operator_val_t {
                      DEG       = 4, 
                      SIN       = 5,  
                      COS       = 6, 
-                     LN        = 7, 
-                     TAN       = 8, 
-                     ASIN      = 9, 
-                     ACOS      = 10, 
-                     ATAN      = 11, 
-                     SINH      = 12,
-                     COSH      = 13, 
-                     TANH      = 14,
-
-                     EQ        = 15,
-                     SEP       = 16,
-
-                     IF        = 17,
-                     BEGIN     = 18,
-                     END       = 19,
-                     WHILE     = 20,
-
-                     PAP_OPEN  = 21,
-                     PAP_CLOSE = 22,
-
-                     COMMA     = 23,
-                     RETURN    = 24,
-                     PRINT     = 25, 
+                     LN        = 7,
+                     SQRT      = 8,
+                     TAN       = 9, 
+                     ASIN      = 10, 
+                     ACOS      = 11, 
+                     ATAN      = 12, 
+                     SINH      = 13,
+                     COSH      = 14, 
+                     TANH      = 15,
+                     EQUANT    = 16, 
+                     BELOW_EQ  = 17,
+                     ABOVE_EQ  = 18,
+                     NO_EQUANT = 19,
+                     BELOW     = 20,
+                     ABOVE     = 21,
+                     EQ        = 22,
+                     SEP       = 23,
+                     IF        = 24,
+                     BEGIN     = 25,
+                     END       = 26,
+                     WHILE     = 27,
+                     PAP_OPEN  = 28,
+                     PAP_CLOSE = 29,
+                     COMMA     = 30,
+                     RETURN    = 31,
+                     PRINT     = 32,
+                     DRAW      = 33,
+                     DRAW_RAM  = 34,  
                     };
 
 enum Flag_t  {NO = 0, YES = 1};

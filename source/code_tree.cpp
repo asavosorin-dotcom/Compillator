@@ -23,7 +23,7 @@ void CompPrintNode(const CompNode_t* node, FILE* file_print, Stack_t* variables,
         break;
 
     case OP:
-        PRINT_FILE("%s\"", arr_operators[node->value.oper].name);
+        PRINT_FILE("%s\"", arr_operators[node->value.oper].command_name);
         break;
 
     case VAR_INIT:
@@ -61,7 +61,7 @@ CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, StackFunc_t* function
     // printf(BOLD_BLUE "In beginnig read: [%s]\n" RESET, buffer + *pos);
     static int pos = 0;
 
-    printf("pos = [%d]\n", pos);
+    // printf("pos = [%d]\n", pos);
 
     pos += skip_space(buffer + pos);
 
@@ -103,10 +103,10 @@ CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, StackFunc_t* function
                 break;
                  
             case VAR_INIT:
-                 printf(BOLD_RED "Entered VAR_INIT case\n");
+                //  printf(BOLD_RED "Entered VAR_INIT case\n");
                 {
                     char* string = GetString(&pos, buffer);
-                    printf(BOLD_GREEN "string: %s\n", string);
+                    // printf(BOLD_GREEN "string: %s\n", string);
                     fflush(stdout);
                     PUSH(*variables, string);
                     val.index_var = variables->size - 1;
@@ -152,20 +152,20 @@ CompNode_t* ReadNodeBack(char* buffer, Stack_t* variables, StackFunc_t* function
         if (buffer[pos] == ')')
             (pos)++;
             
-        printf("[%s]\n", buffer + pos);
+        // printf("[%s]\n", buffer + pos);
         return node;
     }
     else if (buffer[pos] == 'n' && buffer[pos + 1] == 'i' && buffer[pos + 2] == 'l')
     {
         pos += skip_space(buffer + pos);
         pos += strlen("nil");
-        printf("nil\n");
+        // printf("nil\n");
         // printf("if nil [%s]\n", buffer + *pos);
         return NULL;
     }
     else 
     {
-        printf("[%s]\n", buffer);
+        // printf("[%s]\n", buffer);
         // printf(RED "ERROR format code tree\n" RESET);
         return NULL;
     }
@@ -177,7 +177,7 @@ CompNode_t* ReadNode(char* buffer)
     // printf(BOLD_BLUE "In beginnig read: [%s]\n" RESET, buffer + *pos);
     static int pos = 0;
 
-    printf("pos = [%d]\n", pos);
+    // printf("pos = [%d]\n", pos);
 
     pos += skip_space(buffer + pos);
 
@@ -237,20 +237,20 @@ CompNode_t* ReadNode(char* buffer)
         if (buffer[pos] == ')')
             (pos)++;
             
-        printf("[%s]\n", buffer + pos);
+        // printf("[%s]\n", buffer + pos);
         return node;
     }
     else if (buffer[pos] == 'n' && buffer[pos + 1] == 'i' && buffer[pos + 2] == 'l')
     {
         pos += skip_space(buffer + pos);
         pos += strlen("nil");
-        printf("nil\n");
+        // printf("nil\n");
         // printf("if nil [%s]\n", buffer + *pos);
         return NULL;
     }
     else 
     {
-        printf("[%s]\n", buffer);
+        // printf("[%s]\n", buffer);
         // printf(RED "ERROR format code tree\n" RESET);
         return NULL;
     }
@@ -427,7 +427,7 @@ Type_t GetType(int* pos, char* buffer)
     sscanf(buffer + *pos, " \"%s %n", type_name, &len);
 
     // printf("len = %d\n", len);
-    printf("type_name = [%s]\n", type_name);
+    // printf("type_name = [%s]\n", type_name);
 
     *pos += len;
 
@@ -447,19 +447,19 @@ Operator_val_t GetOP(int* pos, char* buffer)
 
     // *pos += skip_space(buffer + *pos);
     
-    char op_name[10] = "";
-    sscanf(buffer + *pos, " %[^\"]\"%n", op_name, &len);
+    char op_name[30] = "";
+    // printf("buffer = [%s]\n", buffer + *pos);
+    sscanf(buffer + *pos, " %[^ \"] \"%n", op_name, &len);
 
     *pos += len;
-    printf("buffer = [%s]\n", buffer + *pos);
 
-    printf("op_name = [%s]\n", op_name);
+    // printf("op_name = [%s]\n", op_name);
 
     for (int index_op = 0; index_op < OP_CAPASITY; index_op++)
     {
-        if (strcmp(op_name, arr_operators[index_op].name) == 0)
+        if (strcmp(op_name, arr_operators[index_op].command_name) == 0)
         {
-            printf("code = %d\n", arr_operators[index_op].code);
+            // printf("code = %d\n", arr_operators[index_op].code);
             return arr_operators[index_op].code;
         }
     }

@@ -24,10 +24,16 @@ static int count_param = 0;
 #define _OUT_           ASM_("OUT\n")
 #define _DEG_           ASM_("POW\n")
 
+#define _SQRT_          ASM_("SQRT\n")
+
 #define _JE_            ASM_("JE ")
 #define _JNE_            ASM_("JNE ")
 
 #define _J_             ASM_("J ")
+#define _JBE_ ASM_("JBE ")
+#define _JB_ ASM_("JB ")
+#define _JA_ ASM_("JA ")
+#define _JAE_ ASM_("JAE ")
 
 #define _RET_      ASM_("RET\n")
 
@@ -147,12 +153,24 @@ void MakeASMOP(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFunc_t
         CASE_BASE_OP(MUL)
         CASE_BASE_OP(DIV)
         CASE_BASE_OP(DEG)
+        CASE_BASE_OP(SQRT)
 
         case PRINT:
             MAKE_ASM_LEFT
             MAKE_ASM_RIGHT
 
             _OUT_
+            break;
+
+        case DRAW:
+            MakeASMParamDraw(node->left, file_asm, variables, init_var);
+            POPR_("CX")
+            POPM_("CX")
+
+            break;
+    
+        case DRAW_RAM:
+            ASM_("DRAW\n")
             break;
 
         case EQ:
@@ -162,8 +180,6 @@ void MakeASMOP(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFunc_t
         case IF:
             MAKE_ASM_LEFT
 
-            PUSH_(0)
-            _JNE_
             ASM_(":if%p\n", node);
 
             MAKE_ASM_RIGHT            
@@ -171,6 +187,54 @@ void MakeASMOP(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFunc_t
             ASM_(":if%p\n", node);
             break;
 
+        case BELOW:
+            MAKE_ASM_LEFT
+            MAKE_ASM_RIGHT
+            _JAE_ 
+            break;
+
+        case BELOW_EQ:
+            MAKE_ASM_LEFT
+            MAKE_ASM_RIGHT
+            _JA_ 
+            break;
+
+        case ABOVE:
+            MAKE_ASM_LEFT
+            MAKE_ASM_RIGHT
+            _JBE_ 
+            break;
+
+        case ABOVE_EQ:
+            MAKE_ASM_LEFT
+            MAKE_ASM_RIGHT
+            _JB_ 
+            break;
+
+        case EQUANT:
+            MAKE_ASM_LEFT
+            MAKE_ASM_RIGHT
+            _JNE_ 
+            break;
+
+        case NO_EQUANT:
+            MAKE_ASM_LEFT
+            MAKE_ASM_RIGHT
+            _JE_ 
+            break;
+
+        case WHILE:
+            ASM_(":whstart%p\n", node)
+            MAKE_ASM_LEFT
+
+            ASM_(":wh%p\n", node);
+
+            MAKE_ASM_RIGHT            
+
+            _J_
+            ASM_(":whstart%p\n", node);
+            ASM_(":wh%p\n", node);
+            break;
         // case COMMA:
         //     MAKE_ASM_RIGHT
         //     MAKE_ASM_LEFT
@@ -229,6 +293,31 @@ int MakeAsmParams(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFun
     if (node->left != NULL) first_index = MakeAsmParams(node->left, file_asm, variables, functions);
 
     return first_index;
+}
+
+void MakeASMParamDraw(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackInt_t* init_var)
+{
+    if (node->right != NULL) MakeASMParamDraw(node->right, file_asm, variables, init_var);
+    if (node->left != NULL) MakeASMParamDraw(node->left, file_asm, variables, init_var);
+    
+    switch (node->type)
+    {
+    case NUM:
+        PUSH_(node->value.num)
+        break;
+    
+    case VAR:
+    {
+        int index = get_index(node->value.var, variables, init_var);
+        PUSH_(index)
+        POPR_("AX")
+        PUSHM_("AX")
+        break;
+    }
+
+    default:
+        break;
+    }
 }
 
 // В таблице имен с функциями хрнаить индексы начала и конца области видимости 
@@ -293,14 +382,11 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
 int MakeASMParamCallfromFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Function_t* function)
 {
     int count_param = 0;
-
-    if (node->right != NULL) MakeASMParamCallfromFunc(node->right, file_asm, variables, function);
-    if (node->left  != NULL) MakeASMParamCallfromFunc(node->left,  file_asm, variables, function);
     
     switch (node->type)
     {
         case VAR:
-        {
+        {            
             int index_var = index_var_func(node->value.var, variables, function);
             PUSH_(index_var)
             POPR_("AX")
@@ -314,6 +400,11 @@ int MakeASMParamCallfromFunc(CompNode_t* node, FILE* file_asm, Stack_t* variable
             PUSH_(node->value.num)
             count_param++;
             break;
+
+        case OP:
+            MakeASMParamFromFuncOP(node, file_asm, variables, function);
+            break;
+
 
         default:
             break;
@@ -369,12 +460,22 @@ void MakeASMOPFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFu
         CASE_BASE_OP(MUL)
         CASE_BASE_OP(DIV)
         CASE_BASE_OP(DEG)
+        CASE_BASE_OP(SQRT)
 
         case PRINT:
             MAKE_ASM_LEFT_FUNC
             MAKE_ASM_RIGHT_FUNC
 
             _OUT_
+            break;
+
+        case DRAW:
+            ASM_(";DRAWWWWWWWWWW\n\n")
+            printf("draaaaaaaaaaaaaaaaaaaaaaw\n\n");
+            MakeASMParamCallfromFunc(node->left, file_asm, variables, &functions->data[index_func]);
+            POPR_("CX")
+            POPM_("CX")
+            ASM_(";END_DRAW\n\n")
             break;
 
         case EQ:
@@ -389,13 +490,47 @@ void MakeASMOPFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFu
         case IF:
             MAKE_ASM_LEFT_FUNC
 
-            PUSH_(0)
-            _JNE_
             ASM_(":if%p\n", node);
 
             MAKE_ASM_RIGHT_FUNC        
 
             ASM_(":if%p\n", node);
+            break;
+
+        case BELOW:
+            MAKE_ASM_LEFT_FUNC
+            MAKE_ASM_RIGHT_FUNC
+            _JAE_ 
+            break;
+
+        case BELOW_EQ:
+            MAKE_ASM_LEFT_FUNC
+            MAKE_ASM_RIGHT_FUNC
+            _JA_ 
+            break;
+
+        case ABOVE:
+            MAKE_ASM_LEFT_FUNC
+            MAKE_ASM_RIGHT_FUNC
+            _JBE_ 
+            break;
+
+        case ABOVE_EQ:
+            MAKE_ASM_LEFT_FUNC
+            MAKE_ASM_RIGHT_FUNC
+            _JB_ 
+            break;
+
+        case EQUANT:
+            MAKE_ASM_LEFT_FUNC
+            MAKE_ASM_RIGHT_FUNC
+            _JNE_ 
+            break;
+
+        case NO_EQUANT:
+            MAKE_ASM_LEFT_FUNC
+            MAKE_ASM_RIGHT_FUNC
+            _JE_ 
             break;
 
         case RETURN:
@@ -405,6 +540,22 @@ void MakeASMOPFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFu
         // case COMMA:
         //     MAKE_ASM_RIGHT
         //     MAKE_ASM_LEFT
+
+        case WHILE:
+            ASM_(":whstart%p\n", node)
+            MAKE_ASM_LEFT_FUNC
+
+            PUSH_(0)
+            _JNE_
+            ASM_(":wh%p\n", node);
+
+            MAKE_ASM_RIGHT_FUNC            
+
+            _J_
+            ASM_(":whstart%p\n", node);
+            ASM_(":wh%p\n", node);
+            break;
+
         default:
             MAKE_ASM_LEFT_FUNC
             MAKE_ASM_RIGHT_FUNC
@@ -425,6 +576,8 @@ void MakeASM_EQ(CompNode_t* node, Stack_t* variables, FILE* file_asm, StackFunc_
 
 }
 
+// void MakeASMDrawParam()
+
 int index_var_func (char* var, Stack_t* variables, Function_t* functions)
 {
     for (int index = functions->begin; index < functions->end; index++)
@@ -435,6 +588,43 @@ int index_var_func (char* var, Stack_t* variables, Function_t* functions)
 
     PRINT_ERR("Variable [%s] doesn't exist\n", var);
     return -1;
+}
+
+void MakeASMParamFromFuncOP(CompNode_t* node, FILE* file_asm, Stack_t* variables, Function_t* functions)
+{
+    switch (node->value.oper)
+    {
+        case ADD:
+        if (node->right != NULL) MakeASMParamCallfromFunc(node->right, file_asm, variables, functions);
+        if (node->left  != NULL) MakeASMParamCallfromFunc(node->left,  file_asm, variables, functions);
+            _ADD_
+            break;
+
+        case SUB:
+        if (node->left  != NULL) MakeASMParamCallfromFunc(node->left,  file_asm, variables, functions);
+        if (node->right != NULL) MakeASMParamCallfromFunc(node->right, file_asm, variables, functions);
+            _SUB_
+            break;
+
+        case MUL:
+            if (node->left  != NULL) MakeASMParamCallfromFunc(node->left,  file_asm, variables, functions);
+            if (node->right != NULL) MakeASMParamCallfromFunc(node->right, file_asm, variables, functions);
+            _MUL_
+            break;
+
+        case DIV:
+            if (node->left  != NULL) MakeASMParamCallfromFunc(node->left,  file_asm, variables, functions);
+            if (node->right != NULL) MakeASMParamCallfromFunc(node->right, file_asm, variables, functions);
+            _DIV_
+            break;
+
+        case DEG:
+            if (node->left  != NULL) MakeASMParamCallfromFunc(node->left,  file_asm, variables, functions);
+            if (node->right != NULL) MakeASMParamCallfromFunc(node->right, file_asm, variables, functions);
+            _DEG_
+            break;
+
+    }
 }
 
 #undef PARAMS_CALL

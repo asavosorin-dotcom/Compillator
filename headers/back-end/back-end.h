@@ -26,4 +26,8 @@ int index_var_func (char* var, Stack_t* variables, Function_t* functions);
 
 void MakeASM_EQ(CompNode_t* node, Stack_t* variables, FILE* file_asm, StackFunc_t* functions, StackInt_t* init_var);
 
+void MakeASMParamFromFuncOP(CompNode_t* node, FILE* file_asm, Stack_t* variables, Function_t* functions);
+
+void MakeASMParamDraw(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackInt_t* init_var);
+
 #endif

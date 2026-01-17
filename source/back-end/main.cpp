@@ -15,7 +15,7 @@ int main()
     printf("buffer: %s\n", buffer + 1);
 
     CompNode_t* root = ReadNodeBack(buffer + 1, &variables, &functions);
-    CompDump(root, "dump", variables);
+    CompDump(root, "dump_back", variables);
 
     StackPrint(&variables);
 
