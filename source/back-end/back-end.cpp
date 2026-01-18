@@ -365,7 +365,10 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
 
     case FUNC:
     {
-        // надо пошаманить с вызовом и регистром
+        PUSHR_("HX")
+        PUSH_(functions->data[index_func])
+        _ADD_
+        POPR_("HX")
         
         int index_ram = functions->data[node->value.index_var].begin;
         int count_param = MakeASMParamCallfromFunc(node->left, file_asm, variables, &functions->data[index_func]);
