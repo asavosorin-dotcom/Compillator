@@ -9,7 +9,7 @@ static int count_param = 0;
 #define ASM_(...) fprintf(file_asm, __VA_ARGS__);
 
 #define PUSH_(num) ASM_("PUSH %d\n", num)
-#define PUSHR_(reg) ASM_("PUSHR %s\n", reg)
+#define PUSHR_(reg) ASM_("PUSHR R%s\n", reg)
 #define PUSHM_(reg) ASM_("PUSHM [R%s]\n", reg) 
 
 // #define POP_(...)  ASM_("POP " __VA_ARGS__ )
