@@ -338,7 +338,7 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
         int index_var = index_var_func(node->value.var, variables, &functions->data[index_func]);
         PUSH_(index_var)
         
-        PUSHM_("HX")
+        PUSHR_("HX")
         _ADD_
 
         POPR_("AX") // поместили индекс в RAX
@@ -352,7 +352,7 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
         functions->data[index_func].end++; // так как все переменные инициализируются по порядку (если нет, то пиздец)
         PUSH_(node->value.index_var)
 
-        PUSHM_("HX")
+        PUSHR_("HX")
         _ADD_
 
         POPR_("AX") 
@@ -366,11 +366,13 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
 
     case FUNC:
     {
+        ASM_("; Увеличение RHX\n")
         PUSHR_("HX")
         PUSH_(functions->data[index_func].end - functions->data[index_func].begin)
         _ADD_
 
         POPR_("HX")
+        ASM_("; Конец увеличения\n")
         
         int index_ram = functions->data[node->value.index_var].begin;
         int count_param = MakeASMParamCallfromFunc(node->left, file_asm, variables, &functions->data[index_func]);
@@ -404,7 +406,7 @@ int MakeASMParamCallfromFunc(CompNode_t* node, FILE* file_asm, Stack_t* variable
         {            
             int index_var = index_var_func(node->value.var, variables, function);
             PUSH_(index_var)
-            PUSHM_("HX")
+            PUSHR_("HX")
             _ADD_
 
             POPR_("AX")
@@ -554,10 +556,12 @@ void MakeASMOPFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFu
         case RETURN:
             MAKE_ASM_LEFT_FUNC
 
+            ASM_("; Уменьшение\n")
             PUSHR_("HX")
             PUSH_(functions->data[index_func].end - functions->data[index_func].begin)
             _SUB_
             POPR_("HX")
+            ASM_("; Конец уменьшения\n")
 
             _RET_
             break;
