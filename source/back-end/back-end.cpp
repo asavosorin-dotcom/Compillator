@@ -505,7 +505,7 @@ void MakeASMOPFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFu
             MAKE_ASM_RIGHT_FUNC
             MAKE_ASM_LEFT_FUNC
 
-            POPR_("HX")
+            POPR_("GX")
             POPM_("AX")
 
             break;
@@ -602,7 +602,7 @@ void MakeASM_EQ(CompNode_t* node, Stack_t* variables, FILE* file_asm, StackFunc_
     MAKE_ASM_RIGHT
     MAKE_ASM_LEFT
 
-    POPR_("HX")
+    POPR_("GX")
     POPM_("AX")
 
 }
