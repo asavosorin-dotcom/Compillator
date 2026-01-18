@@ -124,7 +124,7 @@ void MakeASMNode(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFunc
         int count_param = MakeASMParamCall(node->left, file_asm, variables, init_var);
         int index_ram = functions->data[node->value.index_var].begin;
 
-        for (int count = 0; count < count_param; count++)
+        for (int count = 0; count < count_param; count++) // заношу в оперативку параметры
         {
             PUSH_(index_ram + count)
             POPR_("BX")
@@ -366,20 +366,23 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
 
     case FUNC:
     {
-        ASM_("; Увеличение RHX\n")
+        int index_ram = functions->data[node->value.index_var].begin;
+        int count_param = MakeASMParamCallfromFunc(node->left, file_asm, variables, &functions->data[index_func]);
+
+        ASM_("\n; Увеличение RHX\n")
         PUSHR_("HX")
         PUSH_(functions->data[index_func].end - functions->data[index_func].begin)
         _ADD_
 
         POPR_("HX")
-        ASM_("; Конец увеличения\n")
-        
-        int index_ram = functions->data[node->value.index_var].begin;
-        int count_param = MakeASMParamCallfromFunc(node->left, file_asm, variables, &functions->data[index_func]);
+        ASM_("; Конец увеличения\n\n")
 
         for (int count = 0; count < count_param; count++)
         {
             PUSH_(index_ram + count)
+            PUSHR_("HX")
+            _ADD_
+
             POPR_("BX")
             POPM_("BX")
         }
