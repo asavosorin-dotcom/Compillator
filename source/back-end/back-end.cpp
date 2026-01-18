@@ -93,7 +93,7 @@ void MakeASMNode(CompNode_t* node, FILE* file_asm, Stack_t* variables, StackFunc
         PUSHM_("AX")
         break;
 
-    case FUNC_INIT:
+    case FUNC_INIT: // вот тут надо добавлять стековый фрейм 
     {
         _J_
         ASM_(":end%s\n", functions->data[node->value.index_var].name)
@@ -336,6 +336,10 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
     {
         int index_var = index_var_func(node->value.var, variables, &functions->data[index_func]);
         PUSH_(index_var)
+        
+        PUSHM_("GX")
+        _ADD_
+
         POPR_("AX") // поместили индекс в RAX
         PUSHM_("AX")
 
@@ -346,6 +350,10 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
     {
         functions->data[index_func].end++; // так как все переменные инициализируются по порядку (если нет, то пиздец)
         PUSH_(node->value.index_var)
+
+        PUSHM_("GX")
+        _ADD_
+
         POPR_("AX") 
         PUSHM_("AX")
 
@@ -357,6 +365,8 @@ void MakeASMBodyFunc(CompNode_t* node, FILE* file_asm, Stack_t* variables, Stack
 
     case FUNC:
     {
+        // надо пошаманить с вызовом и регистром
+        
         int index_ram = functions->data[node->value.index_var].begin;
         int count_param = MakeASMParamCallfromFunc(node->left, file_asm, variables, &functions->data[index_func]);
 
