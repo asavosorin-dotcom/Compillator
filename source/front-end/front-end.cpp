@@ -29,10 +29,10 @@ int var_init(char* var, StackInt_t* init_index_var, Stack_t variables);
 size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* functions)
 {
     size_t count_lex = 0;
-    
+    int count_string = 1;    
+
     CompNode_t* node = NULL;
 
-    
     while (*s != '\0')
     {
         // printf("[%s]\n", s);
@@ -159,6 +159,8 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             
             continue;
         }
+
+        if (*s == '\n') {counter_string++; continue;}
 
         if (isspace(*s)) {s++; continue;}
 
