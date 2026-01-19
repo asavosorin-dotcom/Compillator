@@ -85,6 +85,8 @@ struct CompNode_t
     Type_t  type;
     Value_t value;
 
+    int num_string;
+
     CompNode_t* left;
     CompNode_t* right;
     CompNode_t* parent;

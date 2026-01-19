@@ -40,6 +40,8 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
         if (strncmp(s, "var", 3) == 0) // переделать
         {
             node = CompNodeCtor(VAR_INIT);
+            node->num_string = count_string;
+
             s += 3;
             s += skip_space(s);
 
@@ -65,7 +67,8 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
         if (strncmp(s, "func", 4) == 0)
         {
             node = CompNodeCtor(FUNC_INIT);
-            
+            node->num_string = count_string;
+
             s += 4;
             s += skip_space(s);
             
@@ -101,6 +104,8 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             } while (isdigit(*s));
 
             node = CompNodeNUMCtor(value);
+            node->num_string = count_string;
+
             TOKPUSH(*tokens, node);
 
             continue;
@@ -115,6 +120,8 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             {
 
                 node = CompNodeOPCtor(arr_operators[op_index].code);
+                node->num_string = count_string;
+
                 TOKPUSH(*tokens, node);
 
                 command_flag = YES;
@@ -140,6 +147,8 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             if (index_func != -1)
             {
                 node = CompNodeCtor(FUNC);
+                node->num_string = count_string;
+
                 node->value.index_var = index_func;
                 TOKPUSH(*tokens, node);
                 free(name);
@@ -155,6 +164,8 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             }
 
             node = CompNodeVARCtor(name);
+            node->num_string = count_string;
+            
             TOKPUSH(*tokens, node);
             
             continue;
