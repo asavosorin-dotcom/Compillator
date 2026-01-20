@@ -280,7 +280,7 @@ CompNode_t* GetOperation(PARAMS_FUNC)
     return sep;
 }
 
-#define check_for(enum, lex) if (!node_is_op(n, enum))                         \
+#define check_for(enum, lex) if (!node_is_op(Token, enum))                         \
                              {                                                     \
                                  PRINT_ERR("Syntax error in \"" lex "\" on [%d]\n", Token->num_string);       \
                                  return NULL;                                      \
