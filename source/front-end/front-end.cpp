@@ -684,7 +684,7 @@ CompNode_t* GetPermissionExp(PARAMS_FUNC) // переделать названи
             $
             if (Token->value.oper != PAP_CLOSE) //  
             {
-                PRINT_ERR("Syntax error \")\"");
+                PRINT_ERR("Syntax error \")\" on [%d]\n", node->num_string);
                 return NULL;
             }
             $
@@ -731,7 +731,7 @@ CompNode_t* GetVariable(PARAMS_FUNC)
         if (!var_init(Token->value.var, init_index_var, *variables)) 
         {
             $
-            PRINT_ERR("Uninitialized variable");
+            PRINT_ERR("Uninitialized variable [%s] on line [%d]", Token->value.var, Token->num_string);
             return NULL;
         }
     }
