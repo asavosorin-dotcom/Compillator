@@ -171,7 +171,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             continue;
         }
 
-        if (*s == '\n') {count_line++; continue;}
+        if (*s == '\n') {s++; count_line++; continue;}
 
         if (isspace(*s)) {s++; continue;}
 
