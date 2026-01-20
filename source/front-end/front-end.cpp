@@ -179,8 +179,6 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
     }
 
     // printf("---------------------------------------\n");
-    StackPrint(functions);
-
     printf(BOLD_GREEN "Tokens SUCCESS!\n" RESET);
     return tokens->size;
 }
@@ -282,7 +280,7 @@ CompNode_t* GetOperation(PARAMS_FUNC)
     return sep;
 }
 
-#define check_for(enum, lex) if (!node_is_op(Token, enum))                         \
+#define check_for(enum, lex) if (!node_is_op(n, enum))                         \
                              {                                                     \
                                  PRINT_ERR("Syntax error in \"" lex "\" on [%d]\n", Token->num_string);       \
                                  return NULL;                                      \
@@ -429,12 +427,12 @@ CompNode_t* GetIf(PARAMS_FUNC)
     check_for(PAP_CLOSE, ")");
 
     // CompDump(condition, "condition", variables);
-    $
+    
 
     check_for(BEGIN, "{");
     CompNode_t* main_body = GetOperation(PARAMS_FUNC_CALL);
     // CompDump(main_body, "main_body");
-    $
+    
     check_for(END, "}");
     
     if_node->left = condition;
@@ -481,9 +479,9 @@ CompNode_t* GetLogicalOp(PARAMS_FUNC)
         
         CompNode_t* op = Token;
         (*token_pos)++;
-        $
+        
         CompNode_t* expr2 = GetExpression(PARAMS_FUNC_CALL);
-        $
+        
         // (*token_pos)++;
 
         op->left  = expr1;
@@ -506,14 +504,14 @@ CompNode_t* GetLogicalOp(PARAMS_FUNC)
 
 CompNode_t* GetExpression(PARAMS_FUNC)
 {
-    $
+    
     TOKEN_NULL
     CompNode_t* expr1 = GetMul(PARAMS_FUNC_CALL);
 
     // возможны проблемы с тем, что там не степень (оператор)
 
     if (Token == NULL) return expr1;
-    $
+    
     if (Token->type != OP) return expr1;
 
     while (node_is_op(Token, ADD) || node_is_op(Token, SUB))
@@ -522,9 +520,9 @@ CompNode_t* GetExpression(PARAMS_FUNC)
 
         CompNode_t* op = Token;
         (*token_pos)++;
-        $
+        
         CompNode_t* expr2 = GetMul(PARAMS_FUNC_CALL);
-        $
+        
         // (*token_pos)++;
 
         op->left  = expr1;
@@ -558,7 +556,7 @@ CompNode_t* GetMul(PARAMS_FUNC)
 
     // printf("[%p]\n", Token);
     // fflush(stdout);
-    $
+    
     if (Token->type != OP) return expr1;
 
     while (Token->value.oper == MUL || Token->value.oper == DIV)
@@ -593,7 +591,7 @@ CompNode_t* GetDegree(PARAMS_FUNC)
     // возможны проблемы с тем, что там не степень (оператор)
 
     if (Token == NULL) return expr;
-    $
+    
     if (Token->type != OP) return expr;
 
     while (Token->value.oper == DEG)
@@ -644,12 +642,12 @@ CompNode_t* GetMathCommand(PARAMS_FUNC)
         CompNode_t* command = Token;
         // printf("command = [%p]\n", command);
         (*token_pos)++;
-        $
+        
         CompNode_t* argument = GetPermissionExp(PARAMS_FUNC_CALL);
         // printf("argument[%p]\n", argument);
         command->left = argument;
         command->left->parent = command;
-        $
+        
         return command;
     }
     else
@@ -679,15 +677,15 @@ CompNode_t* GetPermissionExp(PARAMS_FUNC) // переделать названи
             
             // free(Token);
             (*token_pos)++; // пропуск PAP_OPEN
-            $
+            
             CompNode_t* node = GetExpression(PARAMS_FUNC_CALL); // сделать норм проверку
-            $
+            
             if (Token->value.oper != PAP_CLOSE) //  
             {
                 PRINT_ERR("Syntax error \")\" on [%d]\n", node->num_string);
                 return NULL;
             }
-            $
+            
             // free(Token);
             (*token_pos)++;
             
@@ -701,7 +699,7 @@ CompNode_t* GetPermissionExp(PARAMS_FUNC) // переделать названи
     }
     else
     {
-        $
+        
         return GetVarOrNum(PARAMS_FUNC_CALL);
     }
 }
@@ -716,7 +714,6 @@ CompNode_t* GetVarOrNum(PARAMS_FUNC)
 CompNode_t* GetVariable(PARAMS_FUNC)
 {
     TOKEN_NULL
-    $
     // CompDump(Token, "var");
 
     // if (Token->type = VAR_INIT)
@@ -730,7 +727,7 @@ CompNode_t* GetVariable(PARAMS_FUNC)
     {
         if (!var_init(Token->value.var, init_index_var, *variables)) 
         {
-            $
+            
             PRINT_ERR("Uninitialized variable [%s] on line [%d]", Token->value.var, Token->num_string);
             return NULL;
         }

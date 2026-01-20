@@ -23,8 +23,6 @@ int main(int argc, char* argv[])
         CompDump(tokens.data[i], "token", variables);
     }
 
-    printf("Token_size = %zu\n", tokens.size);
-
     CompNode_t* root = GetGeneral(&tokens, &variables);
 
     CompDump(root, "first dump", variables);

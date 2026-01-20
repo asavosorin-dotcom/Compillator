@@ -212,8 +212,6 @@ int StackDtor(Stack_t* stk, int line) {
         free(stk->data[i]);
     }
 
-    printf("я в free\n");
-
     stk->size = 0;
     stk->capasity = 0;
     
