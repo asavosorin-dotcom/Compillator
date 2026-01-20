@@ -29,7 +29,7 @@ int var_init(char* var, StackInt_t* init_index_var, Stack_t variables);
 size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* functions)
 {
     size_t count_lex = 0;
-    int count_string = 1;    
+    int count_line = 1;    
 
     CompNode_t* node = NULL;
 
@@ -40,7 +40,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
         if (strncmp(s, "var", 3) == 0) // переделать
         {
             node = CompNodeCtor(VAR_INIT);
-            node->num_string = count_string;
+            node->num_string = count_line;
 
             s += 3;
             s += skip_space(s);
@@ -67,7 +67,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
         if (strncmp(s, "func", 4) == 0)
         {
             node = CompNodeCtor(FUNC_INIT);
-            node->num_string = count_string;
+            node->num_string = count_line;
 
             s += 4;
             s += skip_space(s);
@@ -104,7 +104,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             } while (isdigit(*s));
 
             node = CompNodeNUMCtor(value);
-            node->num_string = count_string;
+            node->num_string = count_line;
 
             TOKPUSH(*tokens, node);
 
@@ -120,7 +120,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             {
 
                 node = CompNodeOPCtor(arr_operators[op_index].code);
-                node->num_string = count_string;
+                node->num_string = count_line;
 
                 TOKPUSH(*tokens, node);
 
@@ -147,7 +147,7 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             if (index_func != -1)
             {
                 node = CompNodeCtor(FUNC);
-                node->num_string = count_string;
+                node->num_string = count_line;
 
                 node->value.index_var = index_func;
                 TOKPUSH(*tokens, node);
@@ -159,19 +159,19 @@ size_t GetLex(const char* s, StackTok_t* tokens, Stack_t* variables, Stack_t* fu
             
             if (index_var == -1)
             {
-                PRINT_ERR("Uninitialized variable [%s]", name);
+                PRINT_ERR("Uninitialized variable [%s] on line [%d]", name, count_line);
                 continue;
             }
 
             node = CompNodeVARCtor(name);
-            node->num_string = count_string;
+            node->num_string = count_line;
             
             TOKPUSH(*tokens, node);
             
             continue;
         }
 
-        if (*s == '\n') {counter_string++; continue;}
+        if (*s == '\n') {count_line++; continue;}
 
         if (isspace(*s)) {s++; continue;}
 
@@ -269,7 +269,7 @@ CompNode_t* GetOperation(PARAMS_FUNC)
     
     if (!node_is_op(sep, SEP)) 
     {
-        PRINT_ERR("Syntax error SEP");
+        PRINT_ERR("Syntax error SEP on line [%d]\n", node_left->num_string);
         return NULL;
     }
     
@@ -284,7 +284,7 @@ CompNode_t* GetOperation(PARAMS_FUNC)
 
 #define check_for(enum, lex) if (!node_is_op(Token, enum))                         \
                              {                                                     \
-                                 PRINT_ERR("Syntax error in \"" lex "\"\n");       \
+                                 PRINT_ERR("Syntax error in \"" lex "\" on [%d]\n", Token->num_string);       \
                                  return NULL;                                      \
                              }                                                     \
                              (*token_pos)++;                                       \
